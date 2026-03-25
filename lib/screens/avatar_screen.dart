@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_scaffold.dart';
@@ -21,27 +22,56 @@ class AvatarScreen extends StatefulWidget {
 }
 
 class _AvatarScreenState extends State<AvatarScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   double _rotation = 0.0;
   int _frontIndex = 0;
   int _tipIndex = 0;
   Offset? _lastPointerPos;
   bool _isPointerDown = false;
 
+  // Snap animation
   late AnimationController _snapController;
   Animation<double>? _snapAnim;
-
   bool _isSnapping = false;
+
+  // Ambient pulse for avatar glow + ring breathing
+  late AnimationController _pulseController;
+
+  // Velocity inertia
+  Ticker? _inertiaTicker;
+  double _velocity = 0.0;
+  final List<_VelocitySample> _velocitySamples = [];
+
   final List<Map<String, dynamic>> _icons = [
-    {'icon': Icons.favorite, 'color': AppColors.accentRose, 'label': 'Vitals'},
-    {'icon': Icons.description, 'color': AppColors.accentBlue, 'label': 'Reports'},
-    {'icon': Icons.local_hospital, 'color': AppColors.accent, 'label': 'Consult'},
-    {'icon': Icons.medication,     'color': AppColors.accentAmber,  'label': 'Medication'},
-    {'icon': Icons.calendar_month, 'color': AppColors.accentViolet, 'label': 'Appointments'},
+    {
+      'icon': Icons.favorite_rounded,
+      'color': AppColors.accentRose,
+      'label': 'Vitals'
+    },
+    {
+      'icon': Icons.description_rounded,
+      'color': AppColors.accentBlue,
+      'label': 'Reports'
+    },
+    {
+      'icon': Icons.local_hospital_rounded,
+      'color': AppColors.accent,
+      'label': 'Consult'
+    },
+    {
+      'icon': Icons.medication_rounded,
+      'color': AppColors.accentAmber,
+      'label': 'Medication'
+    },
+    {
+      'icon': Icons.calendar_month_rounded,
+      'color': AppColors.accentViolet,
+      'label': 'Appointments'
+    },
   ];
 
   final List<String> _tips = [
-    'Aim for 7-9 hours of sleep to support recovery and focus.',
+    'Aim for 7–9 hours of sleep to support recovery and focus.',
     'Hydrate consistently; small sips throughout the day add up.',
     'A short walk after meals can help stabilize energy levels.',
     'Keep medications at the same time daily for better adherence.',
@@ -51,25 +81,101 @@ class _AvatarScreenState extends State<AvatarScreen>
     'Balanced meals with protein help steady energy and appetite.',
   ];
 
-
   @override
   void initState() {
     super.initState();
     _snapController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 260),
+      duration: const Duration(milliseconds: 420),
     );
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _snapController.dispose();
+    _pulseController.dispose();
+    _inertiaTicker?.dispose();
     super.dispose();
+  }
+
+  // ── Pointer handlers ────────────────────────────────────────────────────
+
+  void _onPointerDown(PointerDownEvent event) {
+    _inertiaTicker?.stop();
+    _isPointerDown = true;
+    _lastPointerPos = event.position;
+    _velocitySamples.clear();
+    _velocity = 0.0;
+  }
+
+  void _onPointerMove(PointerMoveEvent event) {
+    if (!_isPointerDown || _lastPointerPos == null) return;
+    final dx = event.position.dx - _lastPointerPos!.dx;
+    _lastPointerPos = event.position;
+    _velocitySamples.add(_VelocitySample(dx, DateTime.now()));
+    if (_velocitySamples.length > 8) _velocitySamples.removeAt(0);
+    setState(() {
+      _rotation -= dx * 0.006;
+      _applyMagnet();
+    });
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    _isPointerDown = false;
+    _lastPointerPos = null;
+
+    // Compute velocity from recent samples (px/ms, negative = rightward swipe)
+    if (_velocitySamples.isNotEmpty) {
+      final recent = _velocitySamples
+          .where((s) => DateTime.now().difference(s.time).inMilliseconds < 120)
+          .toList();
+      if (recent.length >= 2) {
+        final totalDx = recent.fold(0.0, (sum, s) => sum + s.dx);
+        final ms =
+            recent.last.time.difference(recent.first.time).inMilliseconds;
+        _velocity = ms > 0 ? totalDx / ms * 16 : 0.0;
+      }
+    }
+    _velocitySamples.clear();
+    _startInertia();
+  }
+
+  // ── Inertia + snap ───────────────────────────────────────────────────────
+
+  void _startInertia() {
+    if (_velocity.abs() < 1.2) {
+      _snapToFront();
+      return;
+    }
+    _inertiaTicker?.dispose();
+    DateTime? lastTick;
+    _inertiaTicker = createTicker((elapsed) {
+      final now = DateTime.now();
+      final dt = lastTick != null
+          ? now.difference(lastTick!).inMilliseconds / 16.67
+          : 1.0;
+      lastTick = now;
+
+      if (_velocity.abs() < 0.5) {
+        _inertiaTicker?.stop();
+        _snapToFront();
+        return;
+      }
+      setState(() {
+        _rotation -= _velocity * 0.006 * dt;
+        _velocity *= pow(0.87, dt).toDouble();
+        _applyMagnet();
+      });
+    })
+      ..start();
   }
 
   void _snapToFront() {
     final step = (2 * pi) / _icons.length;
-
     double minDelta = double.infinity;
     int closest = 0;
     double closestDelta = 0.0;
@@ -86,28 +192,15 @@ class _AvatarScreenState extends State<AvatarScreen>
     }
 
     final target = _rotation - closestDelta;
-
     _frontIndex = closest;
     _isSnapping = true;
 
-    _snapAnim = Tween<double>(
-      begin: _rotation,
-      end: target,
-    ).animate(
-      CurvedAnimation(
-        parent: _snapController,
-        curve: Curves.easeOutCubic,
-      ),
+    _snapAnim = Tween<double>(begin: _rotation, end: target).animate(
+      CurvedAnimation(parent: _snapController, curve: Curves.easeOutCubic),
     )
-      ..addListener(() {
-        setState(() {
-          _rotation = _snapAnim!.value;
-        });
-      })
+      ..addListener(() => setState(() => _rotation = _snapAnim!.value))
       ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          _isSnapping = false;
-        }
+        if (status == AnimationStatus.completed) _isSnapping = false;
       });
 
     _snapController
@@ -133,8 +226,6 @@ class _AvatarScreenState extends State<AvatarScreen>
     }
 
     _frontIndex = closest;
-
-    // Soft magnetic pull when near the front.
     final threshold = step * 0.18;
     if (minDelta < threshold) {
       _rotation -= closestDelta * 0.22;
@@ -146,434 +237,6 @@ class _AvatarScreenState extends State<AvatarScreen>
     angle = (angle + pi) % twoPi;
     if (angle < 0) angle += twoPi;
     return angle - pi;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final base = min(size.width, size.height);
-    final avatarSize = base * 0.46;
-    final orbitRadius = avatarSize * 0.78;
-    final frontIndex = _findFrontIndex();
-
-    return AppScaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Digital Twin',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    letterSpacing: 0.4,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            Text(
-              'Your biometric orbit',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.muted,
-                  ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code, color: Colors.white70),
-            tooltip: 'My QR Code',
-            onPressed: () async {
-              final user = await EmailPasswordAuthService.currentAppUser();
-              if (user != null && context.mounted) {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => PatientQrScreen(patient: user),
-                ));
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white54),
-            tooltip: 'Sign out',
-            onPressed: () async {
-              await EmailPasswordAuthService().signOut();
-              if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const AuthWrapper()),
-                  (route) => false,
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      body: Listener(
-        behavior: HitTestBehavior.translucent,
-        onPointerDown: _isSnapping
-            ? null
-            : (event) {
-                _isPointerDown = true;
-                _lastPointerPos = event.position;
-              },
-        onPointerMove: _isSnapping
-            ? null
-            : (event) {
-                if (!_isPointerDown || _lastPointerPos == null) return;
-                final delta = event.position.dx - _lastPointerPos!.dx;
-                _lastPointerPos = event.position;
-                setState(() {
-                  _rotation -= delta * 0.005;
-                  _applyMagnet();
-                });
-              },
-        onPointerUp: _isSnapping
-            ? null
-            : (_) {
-                _isPointerDown = false;
-                _lastPointerPos = null;
-                _snapToFront();
-              },
-        onPointerCancel: _isSnapping
-            ? null
-            : (_) {
-                _isPointerDown = false;
-                _lastPointerPos = null;
-              },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final topPad = MediaQuery.of(context).padding.top;
-            final bottomPad = MediaQuery.of(context).padding.bottom;
-            const tipBarHeight = 84.0;
-            const headerHeight = 92.0;
-            final availableHeight =
-                constraints.maxHeight - topPad - bottomPad - tipBarHeight - headerHeight - 12;
-            final availableWidth = constraints.maxWidth;
-            final center = Offset(
-              availableWidth / 2,
-              topPad + headerHeight + availableHeight / 2 + 4,
-            );
-            final scaledAvatar = min(avatarSize, min(availableHeight * 0.62, availableWidth * 0.7));
-            final scaledOrbit = min(orbitRadius, scaledAvatar * 0.72);
-
-            return Stack(
-              children: [
-                Positioned(
-                  left: 20,
-                  right: 20,
-                  top: topPad + 8,
-                  child: AppCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    glow: true,
-                    glowColor: AppColors.accentBlue,
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.accentBlue.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(Icons.visibility, color: AppColors.accentBlue),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Live twin',
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                              Text(
-                                'Orbit to explore systems',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.muted,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: AppColors.accent.withOpacity(0.4)),
-                          ),
-                          child: Text(
-                            'Active',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.accent,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0),
-                Positioned(
-                  left: center.dx - scaledOrbit * 0.92,
-                  top: center.dy - scaledOrbit * 0.92,
-                  child: IgnorePointer(
-                    ignoring: true,
-                    child: Container(
-                      width: scaledOrbit * 1.84,
-                      height: scaledOrbit * 1.84,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.accentBlue.withOpacity(0.28),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: center.dx - scaledOrbit * 0.68,
-                  top: center.dy - scaledOrbit * 0.68,
-                  child: IgnorePointer(
-                    ignoring: true,
-                    child: Container(
-                      width: scaledOrbit * 1.36,
-                      height: scaledOrbit * 1.36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.accent.withOpacity(0.22),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: center.dx - scaledOrbit * 1.02,
-                  top: center.dy - scaledOrbit * 1.02,
-                  child: IgnorePointer(
-                    ignoring: true,
-                    child: Container(
-                      width: scaledOrbit * 2.04,
-                      height: scaledOrbit * 2.04,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.accentViolet.withOpacity(0.18),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                ..._buildOrbit(center, scaledOrbit, frontIndex, behind: true, pointerEnabled: false),
-                Positioned(
-                  left: center.dx - scaledAvatar / 2,
-                  top: center.dy - scaledAvatar / 2,
-                  child: IgnorePointer(
-                    ignoring: true,
-                    child: Container(
-                      width: scaledAvatar,
-                      height: scaledAvatar,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.surface,
-                        border: Border.all(
-                          color: AppColors.outline.withOpacity(0.6),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.accent.withOpacity(0.2),
-                            blurRadius: 24,
-                            spreadRadius: 2,
-                            offset: const Offset(0, -6),
-                          ),
-                          BoxShadow(
-                            color: AppColors.accentBlue.withOpacity(0.35),
-                            blurRadius: 30,
-                            spreadRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: const ClipOval(
-                        child: AvatarGlbView(),
-                      ),
-                    ),
-                  ),
-                ),
-                ..._buildOrbit(center, scaledOrbit, frontIndex, behind: false, pointerEnabled: false),
-                Positioned(
-                  left: 20,
-                  right: 20,
-                  bottom: bottomPad + 16,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _tipIndex = (_tipIndex + 1) % _tips.length;
-                      });
-                    },
-                    child: SizedBox(
-                      height: tipBarHeight,
-                      child: AppCard(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        glow: true,
-                        glowColor: AppColors.accentBlue,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.accent.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.health_and_safety, color: AppColors.accent),
-                            ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 250),
-                          transitionBuilder: (child, animation) {
-                            final slide = Tween<Offset>(
-                              begin: const Offset(0, 0.3),
-                              end: Offset.zero,
-                            ).animate(animation);
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(position: slide, child: child),
-                            );
-                          },
-                          child: Text(
-                            _tips[_tipIndex],
-                            key: ValueKey(_tipIndex),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withOpacity(0.8),
-                                  height: 1.4,
-                                ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.refresh, color: Colors.white54),
-                    ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    ignoring: false,
-                    child: Stack(
-                      children: _buildOrbit(
-                        center,
-                        scaledOrbit,
-                        frontIndex,
-                        behind: false,
-                        pointerEnabled: true,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildOrbit(
-    Offset center,
-    double radius,
-    int frontIndex, {
-    required bool behind,
-    required bool pointerEnabled,
-  }) {
-    final widgets = <Widget>[];
-    final step = (2 * pi) / _icons.length;
-    const orbitItemWidth = 96.0;
-
-    for (int i = 0; i < _icons.length; i++) {
-      final angle = _rotation + step * i;
-      final depth = sin(angle);
-
-      if (behind && depth > 0) continue;
-      if (!behind && depth <= 0) continue;
-
-      final x = center.dx + radius * cos(angle);
-      final y = center.dy + radius * 0.45 * sin(angle);
-
-      final t = (depth + 1) / 2;
-
-      final isFront = i == frontIndex && !behind;
-      widgets.add(
-        Positioned(
-          left: x - orbitItemWidth / 2,
-          top: y - 20,
-          child: SizedBox(
-            width: orbitItemWidth,
-            child: Column(
-              children: [
-                Transform.scale(
-                  scale: 0.74 + 0.14 * t,
-                  child: Opacity(
-                    opacity: 0.35 + 0.65 * t,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: pointerEnabled
-                          ? () => _handleOrbitTap(_icons[i]['label'] as String)
-                          : null,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.surfaceElevated.withOpacity(0.9),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.12),
-                          ),
-                          boxShadow: [
-                            if (!behind)
-                              BoxShadow(
-                                color: (_icons[i]['color'] as Color)
-                                    .withOpacity(0.5),
-                                blurRadius: 12,
-                                spreadRadius: 1,
-                              ),
-                          ],
-                        ),
-                        child: Transform.translate(
-                          offset: (_icons[i]['offset'] as Offset?) ?? Offset.zero,
-                          child: Icon(
-                            _icons[i]['icon'],
-                            color: _icons[i]['color'],
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                if (isFront)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      _icons[i]['label'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-    return widgets;
   }
 
   int _findFrontIndex() {
@@ -592,33 +255,517 @@ class _AvatarScreenState extends State<AvatarScreen>
     return closest;
   }
 
+  // ── Build ────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final base = min(size.width, size.height);
+    final avatarSize = base * 0.50;
+    final orbitRadius = avatarSize * 0.84;
+    final frontIndex = _findFrontIndex();
+
+    return AppScaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Digital Twin',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    letterSpacing: 0.4,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            Text(
+              'Your biometric orbit',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: AppColors.muted),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_rounded, color: Colors.white70),
+            tooltip: 'My QR Code',
+            onPressed: () async {
+              final user = await EmailPasswordAuthService.currentAppUser();
+              if (user != null && context.mounted) {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => PatientQrScreen(patient: user),
+                ));
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.white54),
+            tooltip: 'Sign out',
+            onPressed: () async {
+              await EmailPasswordAuthService().signOut();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthWrapper()),
+                  (route) => false,
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: _isSnapping ? null : _onPointerDown,
+        onPointerMove: _isSnapping ? null : _onPointerMove,
+        onPointerUp: _isSnapping ? null : _onPointerUp,
+        onPointerCancel: _isSnapping
+            ? null
+            : (_) {
+                _isPointerDown = false;
+                _lastPointerPos = null;
+              },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final topPad = MediaQuery.of(context).padding.top;
+            final bottomPad = MediaQuery.of(context).padding.bottom;
+            const tipBarHeight = 84.0;
+            const headerHeight = 92.0;
+            final availableHeight = constraints.maxHeight -
+                topPad -
+                bottomPad -
+                tipBarHeight -
+                headerHeight -
+                12;
+            final availableWidth = constraints.maxWidth;
+            final center = Offset(
+              availableWidth / 2,
+              topPad + headerHeight + availableHeight / 2 + 4,
+            );
+            final scaledAvatar = min(
+              avatarSize,
+              min(availableHeight * 0.64, availableWidth * 0.74),
+            );
+            final scaledOrbit = min(orbitRadius, scaledAvatar * 0.76);
+
+            return Stack(
+              children: [
+                // ── Header card ──────────────────────────────────────────
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  top: topPad + 8,
+                  child: _headerCard(context),
+                )
+                    .animate()
+                    .fadeIn(duration: 500.ms)
+                    .slideY(begin: -0.1, end: 0),
+
+                // ── Orbit rings + pulse glow ─────────────────────────────
+                AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, _) {
+                    final p = _pulseController.value;
+                    return Stack(
+                      children: [
+                        // Ambient glow behind avatar
+                        _glowDisc(center, scaledAvatar * 0.62, AppColors.accent,
+                            0.06 + p * 0.10, 48 + p * 24),
+                        _glowDisc(center, scaledAvatar * 0.52,
+                            AppColors.accentBlue, 0.08 + p * 0.07, 36),
+                        // Orbit rings
+                        _ring(center, scaledOrbit * 0.92, AppColors.accentBlue,
+                            0.14 + p * 0.12),
+                        _ring(center, scaledOrbit * 0.68, AppColors.accent,
+                            0.11 + p * 0.09),
+                        _ring(center, scaledOrbit * 1.06,
+                            AppColors.accentViolet, 0.09 + p * 0.07),
+                      ],
+                    );
+                  },
+                ),
+
+                // ── Behind-avatar orbit items ────────────────────────────
+                ..._buildOrbit(center, scaledOrbit, frontIndex,
+                    behind: true, pointerEnabled: false),
+
+                // ── Avatar ───────────────────────────────────────────────
+                Positioned(
+                  left: center.dx - scaledAvatar / 2,
+                  top: center.dy - scaledAvatar / 2,
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: _pulseController,
+                      builder: (context, child) {
+                        final p = _pulseController.value;
+                        return Container(
+                          width: scaledAvatar,
+                          height: scaledAvatar,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF0C1323),
+                            border: Border.all(
+                              color: AppColors.accent
+                                  .withValues(alpha: 0.18 + p * 0.22),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.accent
+                                    .withValues(alpha: 0.10 + p * 0.13),
+                                blurRadius: 30 + p * 18,
+                                spreadRadius: 2 + p * 5,
+                                offset: const Offset(0, -4),
+                              ),
+                              BoxShadow(
+                                color: AppColors.accentBlue
+                                    .withValues(alpha: 0.22 + p * 0.12),
+                                blurRadius: 36 + p * 14,
+                                spreadRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: const ClipOval(child: AvatarGlbView()),
+                    ),
+                  ),
+                ).animate().fadeIn(duration: 700.ms, delay: 200.ms).scale(
+                      begin: const Offset(0.90, 0.90),
+                      end: const Offset(1.0, 1.0),
+                      curve: Curves.easeOutBack,
+                      duration: 700.ms,
+                      delay: 200.ms,
+                    ),
+
+                // ── Front-avatar orbit items (visual) ────────────────────
+                ..._buildOrbit(center, scaledOrbit, frontIndex,
+                    behind: false, pointerEnabled: false),
+
+                // ── Tip bar ──────────────────────────────────────────────
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  bottom: bottomPad + 16,
+                  child: _tipBar(context, tipBarHeight),
+                )
+                    .animate()
+                    .fadeIn(duration: 500.ms, delay: 350.ms)
+                    .slideY(begin: 0.12, end: 0),
+
+                // ── Front orbit items (pointer-enabled layer) ────────────
+                Positioned.fill(
+                  child: Stack(
+                    children: _buildOrbit(center, scaledOrbit, frontIndex,
+                        behind: false, pointerEnabled: true),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // ── Sub-builders ─────────────────────────────────────────────────────────
+
+  Widget _headerCard(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      glow: true,
+      glowColor: AppColors.accentBlue,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.accentBlue.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.visibility_rounded,
+                color: AppColors.accentBlue),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Live twin',
+                    style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  'Orbit to explore systems',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(999),
+              border:
+                  Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+            ),
+            child: Text(
+              'Active',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tipBar(BuildContext context, double height) {
+    return GestureDetector(
+      onTap: () => setState(() => _tipIndex = (_tipIndex + 1) % _tips.length),
+      child: SizedBox(
+        height: height,
+        child: AppCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          glow: true,
+          glowColor: AppColors.accentBlue,
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.health_and_safety_rounded,
+                    color: AppColors.accent),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 320),
+                  transitionBuilder: (child, animation) {
+                    final slide = Tween<Offset>(
+                      begin: const Offset(0, 0.4),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                        parent: animation, curve: Curves.easeOutCubic));
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(position: slide, child: child),
+                    );
+                  },
+                  child: Text(
+                    _tips[_tipIndex],
+                    key: ValueKey(_tipIndex),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.82),
+                          height: 1.4,
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.refresh_rounded,
+                  color: Colors.white54, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A faint radial glow disc centred on [center].
+  Widget _glowDisc(
+      Offset center, double radius, Color color, double opacity, double blur) {
+    return Positioned(
+      left: center.dx - radius,
+      top: center.dy - radius,
+      child: IgnorePointer(
+        child: Container(
+          width: radius * 2,
+          height: radius * 2,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: opacity),
+                blurRadius: blur,
+                spreadRadius: blur * 0.3,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A thin circle ring.
+  Widget _ring(Offset center, double radius, Color color, double opacity) {
+    return Positioned(
+      left: center.dx - radius,
+      top: center.dy - radius,
+      child: IgnorePointer(
+        child: Container(
+          width: radius * 2,
+          height: radius * 2,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border:
+                Border.all(color: color.withValues(alpha: opacity), width: 1.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildOrbit(
+    Offset center,
+    double radius,
+    int frontIndex, {
+    required bool behind,
+    required bool pointerEnabled,
+  }) {
+    final widgets = <Widget>[];
+    final step = (2 * pi) / _icons.length;
+    const itemContainerWidth = 100.0;
+    const iconSize = 52.0;
+
+    for (int i = 0; i < _icons.length; i++) {
+      final angle = _rotation + step * i;
+      final depth = sin(angle); // –1 (top/back) → +1 (bottom/front)
+
+      if (behind && depth > 0) continue;
+      if (!behind && depth <= 0) continue;
+
+      final x = center.dx + radius * cos(angle);
+      final y = center.dy + radius * 0.44 * sin(angle);
+
+      final t = (depth + 1) / 2; // 0 → 1 (back → front)
+      final isFront = i == frontIndex && !behind;
+      final color = _icons[i]['color'] as Color;
+
+      widgets.add(
+        Positioned(
+          left: x - itemContainerWidth / 2,
+          top: y - iconSize / 2,
+          child: SizedBox(
+            width: itemContainerWidth,
+            child: Column(
+              children: [
+                Transform.scale(
+                  scale: 0.72 + 0.28 * t,
+                  child: Opacity(
+                    opacity: 0.28 + 0.72 * t,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: pointerEnabled
+                          ? () => _handleOrbitTap(_icons[i]['label'] as String)
+                          : null,
+                      child: Container(
+                        width: iconSize,
+                        height: iconSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              color.withValues(alpha: 0.22),
+                              color.withValues(alpha: 0.08),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          border: Border.all(
+                            color: isFront
+                                ? color.withValues(alpha: 0.7)
+                                : Colors.white.withValues(alpha: 0.10),
+                            width: isFront ? 1.5 : 1.0,
+                          ),
+                          boxShadow: isFront
+                              ? [
+                                  BoxShadow(
+                                    color: color.withValues(alpha: 0.5),
+                                    blurRadius: 18,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : (depth > 0
+                                  ? [
+                                      BoxShadow(
+                                        color: color.withValues(alpha: 0.25),
+                                        blurRadius: 8,
+                                      ),
+                                    ]
+                                  : null),
+                        ),
+                        child: Icon(
+                          _icons[i]['icon'] as IconData,
+                          color: color,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (isFront) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _icons[i]['label'] as String,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                      shadows: [
+                        Shadow(
+                          color: color.withValues(alpha: 0.6),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return widgets;
+  }
+
   void _handleOrbitTap(String label) {
     switch (label) {
       case 'Vitals':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const VitalsScreen()),
-        );
-        break;
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const VitalsScreen()));
       case 'Reports':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const ReportsScreen()),
-        );
-        break;
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const ReportsScreen()));
       case 'Medication':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const MedicationScreen()),
-        );
-        break;
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const MedicationScreen()));
       case 'Appointments':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const PatientAppointmentsScreen()),
-        );
-        break;
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => const PatientAppointmentsScreen()));
       default:
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Consult coming soon.')),
         );
     }
   }
+}
 
-} 
+class _VelocitySample {
+  final double dx;
+  final DateTime time;
+  const _VelocitySample(this.dx, this.time);
+}

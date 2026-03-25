@@ -14,12 +14,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey     = GlobalKey<FormState>();
-  final _emailCtrl   = TextEditingController();
-  final _passCtrl    = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
   final _authService = EmailPasswordAuthService();
 
-  bool _loading     = false;
+  bool _loading = false;
   bool _obscurePass = true;
 
   @override
@@ -50,8 +50,11 @@ class _LoginScreenState extends State<LoginScreen> {
   String _friendlyError(String raw) {
     if (raw.contains('user-not-found') ||
         raw.contains('wrong-password') ||
-        raw.contains('invalid-credential')) return 'Incorrect email or password.';
-    if (raw.contains('too-many-requests')) return 'Too many attempts. Try again later.';
+        raw.contains('invalid-credential')) {
+      return 'Incorrect email or password.';
+    }
+    if (raw.contains('too-many-requests'))
+      return 'Too many attempts. Try again later.';
     if (raw.contains('network')) return 'Network error. Check your connection.';
     return 'Sign in failed. Please try again.';
   }
@@ -68,20 +71,22 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-
                 Text('Welcome back',
-                    style: Theme.of(context).textTheme.displaySmall
-                        ?.copyWith(fontWeight: FontWeight.w800))
-                    .animate().fadeIn(duration: 400.ms),
-
+                        style: Theme.of(context)
+                            .textTheme
+                            .displaySmall
+                            ?.copyWith(fontWeight: FontWeight.w800))
+                    .animate()
+                    .fadeIn(duration: 400.ms),
                 const SizedBox(height: 6),
                 Text('Sign in to your Bodyclone account',
-                    style: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: AppColors.muted))
-                    .animate().fadeIn(delay: 80.ms, duration: 400.ms),
-
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: AppColors.muted))
+                    .animate()
+                    .fadeIn(delay: 80.ms, duration: 400.ms),
                 const SizedBox(height: 40),
-
                 AuthField(
                   controller: _emailCtrl,
                   label: 'Email',
@@ -93,9 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ).animate().fadeIn(delay: 160.ms, duration: 400.ms),
-
                 const SizedBox(height: 16),
-
                 AuthField(
                   controller: _passCtrl,
                   label: 'Password',
@@ -104,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePass ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.white38, size: 20,
+                      color: Colors.white38,
+                      size: 20,
                     ),
                     onPressed: () =>
                         setState(() => _obscurePass = !_obscurePass),
@@ -112,9 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: (v) =>
                       v == null || v.length < 6 ? 'Min 6 characters' : null,
                 ).animate().fadeIn(delay: 220.ms, duration: 400.ms),
-
                 const SizedBox(height: 32),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -126,7 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: _loading
                         ? const SizedBox(
-                            width: 20, height: 20,
+                            width: 20,
+                            height: 20,
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: AppColors.ink))
                         : const Text('Sign In',
@@ -134,9 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.w700, fontSize: 15)),
                   ),
                 ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
-
                 const SizedBox(height: 24),
-
                 Center(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).push(
@@ -145,8 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: RichText(
                       text: TextSpan(
                         text: "Don't have an account? ",
-                        style: TextStyle(
-                            color: Colors.white.withOpacity(0.5)),
+                        style: TextStyle(color: Colors.white.withOpacity(0.5)),
                         children: const [
                           TextSpan(
                             text: 'Sign Up',
