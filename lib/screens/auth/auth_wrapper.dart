@@ -8,6 +8,7 @@ import '../../services/medication_reminder_service.dart';
 import '../../services/notification_service.dart';
 import '../../theme/app_theme.dart';
 import '../doctor/doctor_dashboard.dart';
+import '../patient/onboarding/patient_onboarding_screen.dart';
 import '../splash_screen.dart';
 import 'login_screen.dart';
 
@@ -162,6 +163,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
             _maybeSetupNotifications(user);
 
             if (user.isDoctor) return DoctorDashboard(doctor: user);
+            if (!user.profileCompleted) return PatientOnboardingScreen(user: user);
             return const SplashScreen();
           },
         );

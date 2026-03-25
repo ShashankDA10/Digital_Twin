@@ -10,6 +10,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/auth_field.dart';
 import '../appointments/doctor_appointments_screen.dart';
+import 'doctor_patient_summary_screen.dart';
 import 'qr_scanner_screen.dart';
 
 // ── Patient summary ────────────────────────────────────────────────────────────
@@ -169,14 +170,14 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       patientName: selected.name,
     );
     _loadAll();
-    // Open patient detail using the dashboard's own context (safe)
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => _PatientDetailSheet(patient: selected),
+    // Open patient summary screen
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => DoctorPatientSummaryScreen(
+          doctor: widget.doctor,
+          patient: selected,
+        ),
+      ),
     );
     if (!mounted) return;
     if (result == 'report')    _openReportForm(patient: selected);
@@ -226,14 +227,14 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
       id: patient.id, name: patient.name, email: '', phone: '', role: 'patient',
     );
     final fullPatient = patientUser ?? resolved;
-    // Sheet returns 'report' | 'prescribe' | null
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => _PatientDetailSheet(patient: fullPatient),
+    // Push summary screen; returns 'report' | 'prescribe' | null
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => DoctorPatientSummaryScreen(
+          doctor: widget.doctor,
+          patient: fullPatient,
+        ),
+      ),
     );
     if (!mounted) return;
     if (result == 'report')    _openReportForm(patient: fullPatient);
