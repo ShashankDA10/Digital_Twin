@@ -1,18 +1,21 @@
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../models/app_user.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_card.dart';
 import '../widgets/avatar_glb_view.dart';
+import '../services/auth_service.dart';
 import 'appointments/patient_appointments_screen.dart';
+import 'auth/auth_wrapper.dart';
 import 'medication_screen.dart';
+import 'patient/edit_profile_screen.dart';
+import 'patient/patient_qr_screen.dart';
 import 'reports_screen.dart';
 import 'vitals_screen.dart';
-import '../services/auth_service.dart';
-import 'auth/auth_wrapper.dart';
-import 'patient/patient_qr_screen.dart';
 
 class AvatarScreen extends StatefulWidget {
   const AvatarScreen({super.key});
@@ -70,6 +73,10 @@ class _AvatarScreenState extends State<AvatarScreen>
     },
   ];
 
+  // Profile summary (loaded from Firestore on init / after edit)
+  Map<String, dynamic> _profileData = {};
+  AppUser? _currentUser;
+
   final List<String> _tips = [
     'Aim for 7–9 hours of sleep to support recovery and focus.',
     'Hydrate consistently; small sips throughout the day add up.',
@@ -92,6 +99,7 @@ class _AvatarScreenState extends State<AvatarScreen>
       vsync: this,
       duration: const Duration(milliseconds: 2600),
     )..repeat(reverse: true);
+    _loadUserProfile();
   }
 
   @override
@@ -255,6 +263,19 @@ class _AvatarScreenState extends State<AvatarScreen>
     return closest;
   }
 
+  // ── Profile loading ──────────────────────────────────────────────────────
+
+  Future<void> _loadUserProfile() async {
+    final user = await EmailPasswordAuthService.currentAppUser();
+    if (!mounted || user == null) return;
+    _currentUser = user;
+    final snap = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.id)
+        .get();
+    if (mounted) setState(() => _profileData = snap.data() ?? {});
+  }
+
   // ── Build ────────────────────────────────────────────────────────────────
 
   @override
@@ -287,6 +308,20 @@ class _AvatarScreenState extends State<AvatarScreen>
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: Colors.white70),
+            tooltip: 'Edit Profile',
+            onPressed: () async {
+              final user =
+                  _currentUser ?? await EmailPasswordAuthService.currentAppUser();
+              if (user == null || !context.mounted) return;
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) => EditProfileScreen(user: user)),
+              );
+              if (mounted) _loadUserProfile();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.qr_code_rounded, color: Colors.white70),
             tooltip: 'My QR Code',
@@ -330,7 +365,7 @@ class _AvatarScreenState extends State<AvatarScreen>
             final topPad = MediaQuery.of(context).padding.top;
             final bottomPad = MediaQuery.of(context).padding.bottom;
             const tipBarHeight = 84.0;
-            const headerHeight = 92.0;
+            final headerHeight = _profileData.isNotEmpty ? 152.0 : 92.0;
             final availableHeight = constraints.maxHeight -
                 topPad -
                 bottomPad -
@@ -476,54 +511,107 @@ class _AvatarScreenState extends State<AvatarScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       glow: true,
       glowColor: AppColors.accentBlue,
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.accentBlue.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.visibility_rounded,
-                color: AppColors.accentBlue),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Live twin',
-                    style: Theme.of(context).textTheme.titleSmall),
-                Text(
-                  'Orbit to explore systems',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: AppColors.muted),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.accentBlue.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-              ],
-            ),
+                child: const Icon(Icons.visibility_rounded,
+                    color: AppColors.accentBlue),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Live twin',
+                        style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      'Orbit to explore systems',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                      color: AppColors.accent.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  'Active',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(999),
-              border:
-                  Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
-            ),
-            child: Text(
-              'Active',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.accent,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-          ),
+          if (_profileData.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            const Divider(color: Colors.white10, height: 1),
+            const SizedBox(height: 10),
+            _buildProfileChips(),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildProfileChips() {
+    final basic   = _profileData['basicInfo']   as Map<String, dynamic>? ?? {};
+    final conds   = _profileData['conditions']  as Map<String, dynamic>? ?? {};
+    final allerg  = _profileData['allergies']   as Map<String, dynamic>? ?? {};
+    final medsRaw = _profileData['medications'] as List<dynamic>? ?? [];
+
+    final bg = basic['bloodGroup'] as String? ?? '';
+    final condCount = [
+          conds['diabetes'],
+          conds['hypertension'],
+          conds['heartDisease'],
+          conds['asthma'],
+          conds['thyroid'],
+        ].where((v) => v == true).length +
+        ((conds['other'] as String? ?? '').trim().isNotEmpty ? 1 : 0);
+    final hasAllergy = [
+      allerg['drug']  as String? ?? '',
+      allerg['food']  as String? ?? '',
+      allerg['other'] as String? ?? '',
+    ].any((s) => s.trim().isNotEmpty);
+    final medCount = medsRaw.length;
+
+    return Wrap(spacing: 7, runSpacing: 5, children: [
+      if (bg.isNotEmpty)
+        _MiniChip(bg, AppColors.accentRose, Icons.water_drop_outlined),
+      if (condCount > 0)
+        _MiniChip(
+            '$condCount condition${condCount > 1 ? 's' : ''}',
+            AppColors.accentBlue,
+            Icons.medical_information_outlined),
+      if (hasAllergy)
+        _MiniChip('Allergies ⚠️', AppColors.accentAmber, null),
+      if (medCount > 0)
+        _MiniChip(
+            '$medCount med${medCount > 1 ? 's' : ''}',
+            AppColors.accentViolet,
+            Icons.medication_outlined),
+    ]);
   }
 
   Widget _tipBar(BuildContext context, double height) {
@@ -768,4 +856,34 @@ class _VelocitySample {
   final double dx;
   final DateTime time;
   const _VelocitySample(this.dx, this.time);
+}
+
+// ── Profile summary chip ──────────────────────────────────────────────────────
+
+class _MiniChip extends StatelessWidget {
+  final String   label;
+  final Color    color;
+  final IconData? icon;
+  const _MiniChip(this.label, this.color, this.icon);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        if (icon != null) ...[
+          Icon(icon, color: color, size: 10),
+          const SizedBox(width: 4),
+        ],
+        Text(label,
+            style: TextStyle(
+                color: color, fontSize: 10, fontWeight: FontWeight.w600)),
+      ]),
+    );
+  }
 }

@@ -550,7 +550,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: AppColors.accent,
+          activeThumbColor: AppColors.accent,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ]),
