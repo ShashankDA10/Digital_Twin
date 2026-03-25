@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_card.dart';
 import 'report_detail_screen.dart';
+import 'ocr_report_screen.dart';
 
 // ── Category metadata ─────────────────────────────────────────────────────────
 
@@ -208,7 +209,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
               tooltip: 'Add report',
               child: const Icon(Icons.add),
             )
-          : null,
+          : _currentUser?.isPatient == true
+              ? FloatingActionButton(
+                  onPressed: () => Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (_) => const OcrReportScreen()))
+                      .then((saved) { if (saved == true) _load(); }),
+                  tooltip: 'Scan & add report',
+                  child: const Icon(Icons.document_scanner_rounded),
+                )
+              : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
           : _reports.isEmpty
@@ -223,7 +233,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                           style: TextStyle(color: Colors.white.withOpacity(0.8),
                               fontSize: 18, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
-                      Text('Tap + to add your first report',
+                      Text(
+                          _currentUser?.isDoctor == true
+                              ? 'Tap + to add your first report'
+                              : 'Tap the scan button to add your own reports',
                           style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14)),
                     ],
                   ),
@@ -238,6 +251,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         ? r['reportName'] as String
                         : r['type'] as String? ?? 'Report';
                     final hasMed = r['hasMedication'] == true;
+                    final isSelfUploaded = r['source'] == 'patient_upload';
 
                     return AppCard(
                       margin: const EdgeInsets.only(bottom: 10),
@@ -308,6 +322,22 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                           style: TextStyle(
                                             fontSize: 10,
                                             color: AppColors.accent,
+                                            fontWeight: FontWeight.w600,
+                                          )),
+                                    ),
+                                  ],
+                                  if (isSelfUploaded) ...[
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.accentBlue.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(999),
+                                      ),
+                                      child: const Text('Self',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.accentBlue,
                                             fontWeight: FontWeight.w600,
                                           )),
                                     ),

@@ -50,8 +50,9 @@ class ReportDetailScreen extends StatelessWidget {
     final color = meta['color'] as Color;
     final icon  = meta['icon']  as IconData;
 
-    final tags       = List<String>.from(data['tags'] as List? ?? []);
-    final hasMed     = data['hasMedication'] == true;
+    final tags           = List<String>.from(data['tags'] as List? ?? []);
+    final hasMed         = data['hasMedication'] == true;
+    final isSelfUploaded = data['source'] == 'patient_upload';
 
     return AppScaffold(
       appBar: AppBar(
@@ -113,6 +114,36 @@ class ReportDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
+
+              // ── Self-uploaded banner ───────────────────────────────────────
+              if (isSelfUploaded) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.accentBlue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.document_scanner_rounded,
+                          color: AppColors.accentBlue, size: 16),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Self-uploaded — scanned and added by you',
+                          style: TextStyle(
+                            color: AppColors.accentBlue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
 
               // ── Tags ──────────────────────────────────────────────────────
               if (tags.isNotEmpty) ...[

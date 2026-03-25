@@ -26,6 +26,9 @@ class ReportService {
     String? medFrequency,
     int? medTimesPerDay,
     DateTime? medTillDate,
+    // 'doctor' (default) or 'patient_upload' for self-scanned reports
+    String source = 'doctor',
+    String? rawOcrText,
   }) async {
     String? medicationDocId;
 
@@ -59,6 +62,8 @@ class ReportService {
       'attachments':        attachments,
       'hasMedication':      medicationDocId != null,
       'medicationDocId':    medicationDocId,
+      'source':             source,
+      if (rawOcrText != null && rawOcrText.isNotEmpty) 'rawOcrText': rawOcrText,
       'createdAt':          FieldValue.serverTimestamp(),
     });
 
