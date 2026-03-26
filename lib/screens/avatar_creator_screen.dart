@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import '../services/auth_service.dart';
+import '../widgets/avatar_file_loader_stub.dart'
+    if (dart.library.io) '../widgets/avatar_file_loader_io.dart';
 
 class AvatarCreatorScreen extends StatefulWidget {
   const AvatarCreatorScreen({super.key});
@@ -19,7 +19,7 @@ class _AvatarCreatorScreenState extends State<AvatarCreatorScreen> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.any,
-        withData: true, // Required on Android 13+ to bypass scoped storage issues
+        withData: true, // Required on Android 13+ and web
       );
 
       if (result == null || result.files.isEmpty) return;
@@ -42,29 +42,30 @@ class _AvatarCreatorScreenState extends State<AvatarCreatorScreen> {
         return;
       }
 
-      // Get file bytes (works on Android 13+ scoped storage)
-      final bytes = platformFile.bytes ?? await File(platformFile.path!).readAsBytes();
+      final ref = await saveAvatarBytesAndGetRef(
+        platformFile.bytes,
+        platformFile.path,
+        user.id,
+      );
 
-      if (bytes.isEmpty) {
-        throw Exception('File data was empty. Try moving the .glb to your Downloads folder first.');
+      if (ref == null) {
+        throw Exception(
+          'Could not save avatar. On web, try a smaller file (under 3 MB). '
+          'On mobile, try moving the .glb to your Downloads folder first.',
+        );
       }
 
-      // Save to app documents directory, overwriting any previous avatar
-      final dir = await getApplicationDocumentsDirectory();
-      final localFile = File('${dir.path}/user_avatar_${user.id}.glb');
-      await localFile.writeAsBytes(bytes, flush: true);
-
-      // Store the local file path in Firestore (no cloud file hosting needed)
+      // Save the ref (local path on mobile, web_local:userId on web) to Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.id)
-          .set({'avatarUrl': localFile.path}, SetOptions(merge: true));
+          .set({'avatarUrl': ref}, SetOptions(merge: true));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Avatar saved successfully!')),
         );
-        Navigator.pop(context, localFile.path);
+        Navigator.pop(context, ref);
       }
     } catch (e) {
       if (mounted) {
@@ -101,7 +102,8 @@ class _AvatarCreatorScreenState extends State<AvatarCreatorScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Design your avatar at avaturn.me, download the .glb file, then upload it here. It will be saved locally on your device.',
+              'Design your avatar at avaturn.me, download the .glb file, then upload it here. '
+              'On mobile it is saved to your device. On web it is stored in your browser.',
               style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.6),
               textAlign: TextAlign.center,
             ),
@@ -119,11 +121,14 @@ class _AvatarCreatorScreenState extends State<AvatarCreatorScreen> {
                   Text('1. Open Chrome and design at avaturn.me',
                       style: TextStyle(color: Colors.white, fontSize: 15, height: 1.6)),
                   SizedBox(height: 12),
-                  Text('2. Download the final .glb avatar file to your phone.',
+                  Text('2. Download the final .glb avatar file.',
                       style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height: 1.6)),
                   SizedBox(height: 12),
                   Text('3. Tap the button below to select and save it.',
                       style: TextStyle(color: Colors.blueAccent, fontSize: 16, height: 1.6, fontWeight: FontWeight.w600)),
+                  SizedBox(height: 12),
+                  Text('⚠ Web tip: keep the file under 3 MB for best results.',
+                      style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.5)),
                 ],
               ),
             ),

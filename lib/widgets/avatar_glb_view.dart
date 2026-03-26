@@ -1,7 +1,7 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
+import 'avatar_file_loader_stub.dart'
+    if (dart.library.io) 'avatar_file_loader_io.dart';
 
 class AvatarGlbView extends StatefulWidget {
   final String? avatarUrl;
@@ -33,28 +33,18 @@ class _AvatarGlbViewState extends State<AvatarGlbView> {
 
   Future<void> _resolveSrc() async {
     setState(() => _loading = true);
-
     final url = widget.avatarUrl;
 
-    // Local file path (saved by avatar creator) — convert to base64 data URI
-    // so ModelViewer's internal WebView can load it without CORS issues
+    // Local file path (mobile only) — convert to base64 data URI
     if (url != null && url.isNotEmpty && !url.startsWith('http') && !url.startsWith('assets')) {
-      try {
-        final file = File(url);
-        if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-          final encoded = base64Encode(bytes);
-          if (mounted) {
-            setState(() {
-              _resolvedSrc = 'data:model/gltf-binary;base64,$encoded';
-              _loading = false;
-            });
-          }
-          return;
-        }
-      } catch (_) {
-        // Fall through to default
+      final dataUri = await readLocalGlbAsDataUri(url);
+      if (mounted) {
+        setState(() {
+          _resolvedSrc = dataUri ?? 'assets/images/avatar.glb';
+          _loading = false;
+        });
       }
+      return;
     }
 
     // Remote URL or default asset
