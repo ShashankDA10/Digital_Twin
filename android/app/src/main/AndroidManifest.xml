@@ -53,6 +53,7 @@
     <application
         android:label="Digital Twin"
         android:name="${applicationName}"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
 
         <activity

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../theme/app_theme.dart';
 
@@ -32,8 +34,27 @@ class _AvatarGlbViewState extends State<AvatarGlbView>
         onPageFinished: (_) {
           if (mounted) setState(() => _loaded = true);
         },
-      ))
-      ..loadFlutterAsset('assets/avatar.html');
+      ));
+
+    _initWebView();
+  }
+
+  Future<void> _initWebView() async {
+    try {
+      final htmlString = await rootBundle.loadString('assets/avatar.html');
+      final glbBytes = await rootBundle.load('assets/images/avatar.glb');
+      final base64Glb = base64Encode(glbBytes.buffer.asUint8List());
+      final dataUri = 'data:model/gltf-binary;base64,$base64Glb';
+
+      final finalHtml = htmlString.replaceFirst(
+        'src="images/avatar.glb"',
+        'src="$dataUri"',
+      );
+
+      await _controller.loadHtmlString(finalHtml, baseUrl: 'https://localhost/');
+    } catch (e) {
+      debugPrint('Error loading avatar: $e');
+    }
   }
 
   @override

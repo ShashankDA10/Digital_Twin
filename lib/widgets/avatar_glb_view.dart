@@ -1,3 +1,103 @@
-export 'avatar_glb_view_stub.dart'
-    if (dart.library.html) 'avatar_glb_view_web.dart'
-    if (dart.library.io) 'avatar_glb_view_mobile.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:model_viewer_plus/model_viewer_plus.dart';
+
+class AvatarGlbView extends StatefulWidget {
+  final String? avatarUrl;
+  final double size;
+
+  const AvatarGlbView({super.key, this.avatarUrl, this.size = 140});
+
+  @override
+  State<AvatarGlbView> createState() => _AvatarGlbViewState();
+}
+
+class _AvatarGlbViewState extends State<AvatarGlbView> {
+  String? _resolvedSrc;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveSrc();
+  }
+
+  @override
+  void didUpdateWidget(AvatarGlbView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.avatarUrl != widget.avatarUrl) {
+      _resolveSrc();
+    }
+  }
+
+  Future<void> _resolveSrc() async {
+    setState(() => _loading = true);
+
+    final url = widget.avatarUrl;
+
+    // Local file path (saved by avatar creator) — convert to base64 data URI
+    // so ModelViewer's internal WebView can load it without CORS issues
+    if (url != null && url.isNotEmpty && !url.startsWith('http') && !url.startsWith('assets')) {
+      try {
+        final file = File(url);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          final encoded = base64Encode(bytes);
+          if (mounted) {
+            setState(() {
+              _resolvedSrc = 'data:model/gltf-binary;base64,$encoded';
+              _loading = false;
+            });
+          }
+          return;
+        }
+      } catch (_) {
+        // Fall through to default
+      }
+    }
+
+    // Remote URL or default asset
+    if (mounted) {
+      setState(() {
+        _resolvedSrc = (url != null && url.startsWith('http')) ? url : 'assets/images/avatar.glb';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading || _resolvedSrc == null) {
+      return SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.blueAccent),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: widget.size,
+      height: widget.size,
+      child: ModelViewer(
+        src: _resolvedSrc!,
+        alt: "Your 3D Avatar",
+        autoRotate: false,
+        autoRotateDelay: 0,
+        rotationPerSecond: "6deg",
+        cameraControls: false,
+        cameraOrbit: "0deg 78deg auto",
+        cameraTarget: "0m 0.9m 0m",
+        fieldOfView: "28deg",
+        interactionPrompt: InteractionPrompt.none,
+        autoPlay: false,
+        disableZoom: true,
+        disablePan: true,
+        shadowIntensity: 0,
+        exposure: 0.9,
+      ),
+    );
+  }
+}

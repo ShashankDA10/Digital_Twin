@@ -16,6 +16,7 @@ import 'patient/edit_profile_screen.dart';
 import 'patient/patient_qr_screen.dart';
 import 'reports_screen.dart';
 import 'vitals_screen.dart';
+import 'avatar_creator_screen.dart';
 
 class AvatarScreen extends StatefulWidget {
   const AvatarScreen({super.key});
@@ -26,7 +27,7 @@ class AvatarScreen extends StatefulWidget {
 
 class _AvatarScreenState extends State<AvatarScreen>
     with TickerProviderStateMixin {
-  double _rotation = 0.0;
+  final ValueNotifier<double> _rotation = ValueNotifier(0.0);
   int _frontIndex = 0;
   int _tipIndex = 0;
   Offset? _lastPointerPos;
@@ -98,7 +99,7 @@ class _AvatarScreenState extends State<AvatarScreen>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2600),
-    )..repeat(reverse: true);
+    ); // Removed ..repeat() to stop Android native rendering sync logs!
     _loadUserProfile();
   }
 
@@ -106,6 +107,7 @@ class _AvatarScreenState extends State<AvatarScreen>
   void dispose() {
     _snapController.dispose();
     _pulseController.dispose();
+    _rotation.dispose();
     _inertiaTicker?.dispose();
     super.dispose();
   }
@@ -126,10 +128,8 @@ class _AvatarScreenState extends State<AvatarScreen>
     _lastPointerPos = event.position;
     _velocitySamples.add(_VelocitySample(dx, DateTime.now()));
     if (_velocitySamples.length > 8) _velocitySamples.removeAt(0);
-    setState(() {
-      _rotation -= dx * 0.006;
-      _applyMagnet();
-    });
+    _rotation.value -= dx * 0.006;
+    _applyMagnet();
   }
 
   void _onPointerUp(PointerUpEvent event) {
@@ -173,11 +173,9 @@ class _AvatarScreenState extends State<AvatarScreen>
         _snapToFront();
         return;
       }
-      setState(() {
-        _rotation -= _velocity * 0.006 * dt;
-        _velocity *= pow(0.87, dt).toDouble();
-        _applyMagnet();
-      });
+      _rotation.value -= _velocity * 0.006 * dt;
+      _velocity *= pow(0.87, dt).toDouble();
+      _applyMagnet();
     })
       ..start();
   }
@@ -189,7 +187,7 @@ class _AvatarScreenState extends State<AvatarScreen>
     double closestDelta = 0.0;
 
     for (int i = 0; i < _icons.length; i++) {
-      final angle = _rotation + step * i;
+      final angle = _rotation.value + step * i;
       final delta = _wrapToPi(angle - pi / 2);
       final absDelta = delta.abs();
       if (absDelta < minDelta) {
@@ -199,14 +197,14 @@ class _AvatarScreenState extends State<AvatarScreen>
       }
     }
 
-    final target = _rotation - closestDelta;
+    final target = _rotation.value - closestDelta;
     _frontIndex = closest;
     _isSnapping = true;
 
-    _snapAnim = Tween<double>(begin: _rotation, end: target).animate(
+    _snapAnim = Tween<double>(begin: _rotation.value, end: target).animate(
       CurvedAnimation(parent: _snapController, curve: Curves.easeOutCubic),
     )
-      ..addListener(() => setState(() => _rotation = _snapAnim!.value))
+      ..addListener(() => _rotation.value = _snapAnim!.value)
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed) _isSnapping = false;
       });
@@ -223,7 +221,7 @@ class _AvatarScreenState extends State<AvatarScreen>
     int closest = 0;
 
     for (int i = 0; i < _icons.length; i++) {
-      final angle = _rotation + step * i;
+      final angle = _rotation.value + step * i;
       final delta = _wrapToPi(angle - pi / 2);
       final absDelta = delta.abs();
       if (absDelta < minDelta) {
@@ -236,7 +234,7 @@ class _AvatarScreenState extends State<AvatarScreen>
     _frontIndex = closest;
     final threshold = step * 0.18;
     if (minDelta < threshold) {
-      _rotation -= closestDelta * 0.22;
+      _rotation.value -= closestDelta * 0.22;
     }
   }
 
@@ -247,13 +245,13 @@ class _AvatarScreenState extends State<AvatarScreen>
     return angle - pi;
   }
 
-  int _findFrontIndex() {
+  int _findFrontIndex(double currentRotation) {
     final step = (2 * pi) / _icons.length;
     double minDelta = double.infinity;
     int closest = 0;
 
     for (int i = 0; i < _icons.length; i++) {
-      final angle = _rotation + step * i;
+      final angle = currentRotation + step * i;
       final delta = _wrapToPi(angle - pi / 2).abs();
       if (delta < minDelta) {
         minDelta = delta;
@@ -284,7 +282,6 @@ class _AvatarScreenState extends State<AvatarScreen>
     final base = min(size.width, size.height);
     final avatarSize = base * 0.50;
     final orbitRadius = avatarSize * 0.84;
-    final frontIndex = _findFrontIndex();
 
     return AppScaffold(
       appBar: AppBar(
@@ -421,10 +418,21 @@ class _AvatarScreenState extends State<AvatarScreen>
                 ),
 
                 // ── Behind-avatar orbit items ────────────────────────────
-                ..._buildOrbit(center, scaledOrbit, frontIndex,
-                    behind: true, pointerEnabled: false),
+                Positioned.fill(
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _rotation,
+                    builder: (context, rot, _) {
+                      return Stack(
+                        children: _buildOrbit(
+                          center, scaledOrbit, _findFrontIndex(rot), rot,
+                          behind: true, pointerEnabled: false,
+                        ),
+                      );
+                    },
+                  ),
+                ),
 
-                // ── Avatar ───────────────────────────────────────────────
+                // ── Avatar Background (Animated) ─────────────────────────
                 Positioned(
                   left: center.dx - scaledAvatar / 2,
                   top: center.dy - scaledAvatar / 2,
@@ -460,10 +468,8 @@ class _AvatarScreenState extends State<AvatarScreen>
                               ),
                             ],
                           ),
-                          child: child,
                         );
                       },
-                      child: const ClipOval(child: AvatarGlbView()),
                     ),
                   ),
                 ).animate().fadeIn(duration: 700.ms, delay: 200.ms).scale(
@@ -474,9 +480,35 @@ class _AvatarScreenState extends State<AvatarScreen>
                       delay: 200.ms,
                     ),
 
+                // ── Avatar PlatformView (Static Sibling) ─────────────────
+                Positioned(
+                  left: center.dx - scaledAvatar / 2,
+                  top: center.dy - scaledAvatar / 2,
+                  child: IgnorePointer(
+                    child: SizedBox(
+                      width: scaledAvatar,
+                      height: scaledAvatar,
+                      child: AvatarGlbView(
+                        avatarUrl: _profileData['avatarUrl'] as String?,
+                      ),
+                    ),
+                  ),
+                ),
+
                 // ── Front-avatar orbit items (visual) ────────────────────
-                ..._buildOrbit(center, scaledOrbit, frontIndex,
-                    behind: false, pointerEnabled: false),
+                Positioned.fill(
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _rotation,
+                    builder: (context, rot, _) {
+                      return Stack(
+                        children: _buildOrbit(
+                          center, scaledOrbit, _findFrontIndex(rot), rot,
+                          behind: false, pointerEnabled: false,
+                        ),
+                      );
+                    },
+                  ),
+                ),
 
                 // ── Tip bar ──────────────────────────────────────────────
                 Positioned(
@@ -491,9 +523,16 @@ class _AvatarScreenState extends State<AvatarScreen>
 
                 // ── Front orbit items (pointer-enabled layer) ────────────
                 Positioned.fill(
-                  child: Stack(
-                    children: _buildOrbit(center, scaledOrbit, frontIndex,
-                        behind: false, pointerEnabled: true),
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _rotation,
+                    builder: (context, rot, _) {
+                      return Stack(
+                        children: _buildOrbit(
+                          center, scaledOrbit, _findFrontIndex(rot), rot,
+                          behind: false, pointerEnabled: true,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -543,6 +582,17 @@ class _AvatarScreenState extends State<AvatarScreen>
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.face_retouching_natural_rounded, color: AppColors.accentBlue),
+                tooltip: 'Customize Avatar',
+                onPressed: () async {
+                  await Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (_) => const AvatarCreatorScreen()),
+                  );
+                  if (context.mounted) _loadUserProfile();
+                },
               ),
               Container(
                 padding:
@@ -717,7 +767,8 @@ class _AvatarScreenState extends State<AvatarScreen>
   List<Widget> _buildOrbit(
     Offset center,
     double radius,
-    int frontIndex, {
+    int frontIndex,
+    double currentRotation, {
     required bool behind,
     required bool pointerEnabled,
   }) {
@@ -727,7 +778,7 @@ class _AvatarScreenState extends State<AvatarScreen>
     const iconSize = 52.0;
 
     for (int i = 0; i < _icons.length; i++) {
-      final angle = _rotation + step * i;
+      final angle = currentRotation + step * i;
       final depth = sin(angle); // –1 (top/back) → +1 (bottom/front)
 
       if (behind && depth > 0) continue;
