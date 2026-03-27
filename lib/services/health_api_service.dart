@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/health_data.dart';
 
@@ -68,7 +69,7 @@ class HealthApiService {
       }
     } catch (e) {
       // Silently fail for now - could add retry logic
-      print('Error updating avatar mood: $e');
+      debugPrint('Error updating avatar mood: $e');
     }
   }
 

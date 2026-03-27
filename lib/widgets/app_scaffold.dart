@@ -46,7 +46,7 @@ class AppScaffold extends StatelessWidget {
             right: -100,
             child: _GlowOrb(
               size: 280,
-              color: AppColors.accentBlue.withOpacity(0.18),
+              color: AppColors.accentBlue.withValues(alpha: 0.18),
             ),
           ),
           Positioned(
@@ -54,7 +54,7 @@ class AppScaffold extends StatelessWidget {
             left: -120,
             child: _GlowOrb(
               size: 320,
-              color: AppColors.accent.withOpacity(0.18),
+              color: AppColors.accent.withValues(alpha: 0.18),
             ),
           ),
           Positioned(
@@ -62,7 +62,7 @@ class AppScaffold extends StatelessWidget {
             left: -160,
             child: _GlowOrb(
               size: 240,
-              color: AppColors.accentRose.withOpacity(0.08),
+              color: AppColors.accentRose.withValues(alpha: 0.08),
             ),
           ),
           Scaffold(
@@ -98,7 +98,7 @@ class _GlowOrb extends StatelessWidget {
         gradient: RadialGradient(
           colors: [
             color,
-            color.withOpacity(0.01),
+            color.withValues(alpha: 0.01),
           ],
         ),
       ),
@@ -112,7 +112,7 @@ class _AuraPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.03)
+      ..color = Colors.white.withValues(alpha: 0.03)
       ..strokeWidth = 1;
 
     const step = 64.0;

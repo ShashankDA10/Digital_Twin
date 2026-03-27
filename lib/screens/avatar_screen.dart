@@ -17,6 +17,8 @@ import 'patient/patient_qr_screen.dart';
 import 'reports_screen.dart';
 import 'vitals_screen.dart';
 import 'avatar_creator_screen.dart';
+import '../medtwin/widgets/animated_orbit_button.dart';
+import '../medtwin/screens/medtwin_home_screen.dart';
 
 class AvatarScreen extends StatefulWidget {
   const AvatarScreen({super.key});
@@ -28,7 +30,6 @@ class AvatarScreen extends StatefulWidget {
 class _AvatarScreenState extends State<AvatarScreen>
     with TickerProviderStateMixin {
   final ValueNotifier<double> _rotation = ValueNotifier(0.0);
-  int _frontIndex = 0;
   int _tipIndex = 0;
   Offset? _lastPointerPos;
   bool _isPointerDown = false;
@@ -115,6 +116,7 @@ class _AvatarScreenState extends State<AvatarScreen>
   // ── Pointer handlers ────────────────────────────────────────────────────
 
   void _onPointerDown(PointerDownEvent event) {
+    if (_isSnapping) return;
     _inertiaTicker?.stop();
     _isPointerDown = true;
     _lastPointerPos = event.position;
@@ -123,6 +125,7 @@ class _AvatarScreenState extends State<AvatarScreen>
   }
 
   void _onPointerMove(PointerMoveEvent event) {
+    if (_isSnapping) return;
     if (!_isPointerDown || _lastPointerPos == null) return;
     final dx = event.position.dx - _lastPointerPos!.dx;
     _lastPointerPos = event.position;
@@ -133,6 +136,7 @@ class _AvatarScreenState extends State<AvatarScreen>
   }
 
   void _onPointerUp(PointerUpEvent event) {
+    if (_isSnapping) return;
     _isPointerDown = false;
     _lastPointerPos = null;
 
@@ -142,7 +146,7 @@ class _AvatarScreenState extends State<AvatarScreen>
           .where((s) => DateTime.now().difference(s.time).inMilliseconds < 120)
           .toList();
       if (recent.length >= 2) {
-        final totalDx = recent.fold(0.0, (sum, s) => sum + s.dx);
+        final totalDx = recent.fold(0.0, (acc, s) => acc + s.dx);
         final ms =
             recent.last.time.difference(recent.first.time).inMilliseconds;
         _velocity = ms > 0 ? totalDx / ms * 16 : 0.0;
@@ -198,7 +202,6 @@ class _AvatarScreenState extends State<AvatarScreen>
     }
 
     final target = _rotation.value - closestDelta;
-    _frontIndex = closest;
     _isSnapping = true;
 
     _snapAnim = Tween<double>(begin: _rotation.value, end: target).animate(
@@ -218,7 +221,6 @@ class _AvatarScreenState extends State<AvatarScreen>
     final step = (2 * pi) / _icons.length;
     double minDelta = double.infinity;
     double closestDelta = 0.0;
-    int closest = 0;
 
     for (int i = 0; i < _icons.length; i++) {
       final angle = _rotation.value + step * i;
@@ -227,11 +229,9 @@ class _AvatarScreenState extends State<AvatarScreen>
       if (absDelta < minDelta) {
         minDelta = absDelta;
         closestDelta = delta;
-        closest = i;
       }
     }
 
-    _frontIndex = closest;
     final threshold = step * 0.18;
     if (minDelta < threshold) {
       _rotation.value -= closestDelta * 0.22;
@@ -348,15 +348,14 @@ class _AvatarScreenState extends State<AvatarScreen>
       ),
       body: Listener(
         behavior: HitTestBehavior.translucent,
-        onPointerDown: _isSnapping ? null : _onPointerDown,
-        onPointerMove: _isSnapping ? null : _onPointerMove,
-        onPointerUp: _isSnapping ? null : _onPointerUp,
-        onPointerCancel: _isSnapping
-            ? null
-            : (_) {
-                _isPointerDown = false;
-                _lastPointerPos = null;
-              },
+        onPointerDown: _onPointerDown,
+        onPointerMove: _onPointerMove,
+        onPointerUp: _onPointerUp,
+        onPointerCancel: (_) {
+          if (_isSnapping) return;
+          _isPointerDown = false;
+          _lastPointerPos = null;
+        },
         child: LayoutBuilder(
           builder: (context, constraints) {
             final topPad = MediaQuery.of(context).padding.top;
@@ -510,6 +509,19 @@ class _AvatarScreenState extends State<AvatarScreen>
                   ),
                 ),
 
+                // ── MedTwin AI orbit button ──────────────────────────────
+                Positioned(
+                  right: 20,
+                  bottom: bottomPad + tipBarHeight + 28,
+                  child: AnimatedOrbitButton(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MedTwinHomeScreen(),
+                      ),
+                    ),
+                  ),
+                ).animate().fadeIn(duration: 500.ms, delay: 500.ms),
+
                 // ── Tip bar ──────────────────────────────────────────────
                 Positioned(
                   left: 20,
@@ -655,7 +667,7 @@ class _AvatarScreenState extends State<AvatarScreen>
             AppColors.accentBlue,
             Icons.medical_information_outlined),
       if (hasAllergy)
-        _MiniChip('Allergies ⚠️', AppColors.accentAmber, null),
+        const _MiniChip('Allergies ⚠️', AppColors.accentAmber, null),
       if (medCount > 0)
         _MiniChip(
             '$medCount med${medCount > 1 ? 's' : ''}',

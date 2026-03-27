@@ -34,8 +34,8 @@ class AuthField extends StatelessWidget {
         hintText: hint,
         suffixIcon: suffixIcon,
         labelStyle: TextStyle(
-            color: Colors.white.withOpacity(0.55), fontSize: 13),
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.25)),
+            color: Colors.white.withValues(alpha: 0.55), fontSize: 13),
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.25)),
         filled: true,
         fillColor: AppColors.surfaceElevated,
         border: OutlineInputBorder(

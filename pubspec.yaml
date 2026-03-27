@@ -32,6 +32,9 @@ dependencies:
   timezone: ^0.9.4
   image_picker: ^1.1.2
   google_mlkit_text_recognition: ^0.13.0
+  dio: ^5.7.0
+  shared_preferences: ^2.3.0
+  fl_chart: ^0.68.0
 
 dev_dependencies:
   flutter_test:

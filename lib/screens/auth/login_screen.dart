@@ -53,8 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
         raw.contains('invalid-credential')) {
       return 'Incorrect email or password.';
     }
-    if (raw.contains('too-many-requests'))
+    if (raw.contains('too-many-requests')) {
       return 'Too many attempts. Try again later.';
+    }
     if (raw.contains('network')) return 'Network error. Check your connection.';
     return 'Sign in failed. Please try again.';
   }
@@ -146,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: RichText(
                       text: TextSpan(
                         text: "Don't have an account? ",
-                        style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                         children: const [
                           TextSpan(
                             text: 'Sign Up',

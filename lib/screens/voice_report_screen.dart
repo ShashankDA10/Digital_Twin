@@ -76,8 +76,8 @@ class _VoiceReportScreenState extends State<VoiceReportScreen> {
       },
       listenFor: const Duration(seconds: 300), // 5 minutes max
       pauseFor: const Duration(seconds: 3),
-      partialResults: true,
       localeId: 'en_US',
+      listenOptions: stt.SpeechListenOptions(partialResults: true),
     );
   }
 
@@ -161,7 +161,7 @@ class _VoiceReportScreenState extends State<VoiceReportScreen> {
             Text(
               'Speak naturally. We will structure it.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                   ),
             ),
           ],
@@ -188,7 +188,7 @@ class _VoiceReportScreenState extends State<VoiceReportScreen> {
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _isListening
-                  ? AppColors.danger.withOpacity(0.18)
+                  ? AppColors.danger.withValues(alpha: 0.18)
                   : AppColors.surface,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.outline),
@@ -253,7 +253,7 @@ class _VoiceReportScreenState extends State<VoiceReportScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: (_isListening ? AppColors.danger : AppColors.accentBlue)
-                                  .withOpacity(0.5),
+                                  .withValues(alpha: 0.5),
                               blurRadius: _isListening ? 34 : 28,
                               spreadRadius: _isListening ? 12 : 8,
                             ),
@@ -275,7 +275,7 @@ class _VoiceReportScreenState extends State<VoiceReportScreen> {
                         'Microphone permission required',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           fontSize: 14,
                         ),
                       ),
@@ -313,7 +313,7 @@ class _VoiceReportScreenState extends State<VoiceReportScreen> {
                       child: Text(
                         _transcript,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 14,
                         ),
                       ),
@@ -340,7 +340,7 @@ class _VoiceReportScreenState extends State<VoiceReportScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  disabledBackgroundColor: Colors.grey.withOpacity(0.3),
+                  disabledBackgroundColor: Colors.grey.withValues(alpha: 0.3),
                 ),
                 child: _isProcessing
                     ? const Row(

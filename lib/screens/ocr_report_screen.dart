@@ -176,7 +176,7 @@ class _OcrReportScreenState extends State<OcrReportScreen>
       if (rawText == null || rawText.trim().isEmpty) {
         // No text found — go to blank review form
         setState(() {
-          _parsed = OcrParsedReport(
+          _parsed = const OcrParsedReport(
             rawText: '',
             doctorName: '',
             hospitalName: '',
@@ -211,7 +211,7 @@ class _OcrReportScreenState extends State<OcrReportScreen>
         _ocrError = 'OCR failed. Please check your internet connection for the first scan, '
             'then try again.\n\nError: $e';
         _step = _OcrStep.review;
-        _parsed = OcrParsedReport(
+        _parsed = const OcrParsedReport(
           rawText: '',
           doctorName: '',
           hospitalName: '',
@@ -607,14 +607,14 @@ class _OcrReportScreenState extends State<OcrReportScreen>
 
             // ── Type ─────────────────────────────────────────────────────────
             if (_selectedCat != null) ...[
-              _SectionHeader(label: 'Report Type', required: true),
+              const _SectionHeader(label: 'Report Type', required: true),
               const SizedBox(height: 10),
               _buildTypeList(),
               const SizedBox(height: 20),
             ],
 
             // ── Report name ───────────────────────────────────────────────────
-            _SectionHeader(label: 'Report Name', hint: 'Optional — e.g. "Annual Blood Test"'),
+            const _SectionHeader(label: 'Report Name', hint: 'Optional — e.g. "Annual Blood Test"'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _reportNameCtrl,

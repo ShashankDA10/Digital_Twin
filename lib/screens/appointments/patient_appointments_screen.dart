@@ -107,12 +107,12 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
         content: Text(
           'Cancel your appointment with Dr. ${appt.doctorName} on ${_formatDate(appt.date)} at ${appt.time}?',
-          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Keep', style: TextStyle(color: Colors.white.withOpacity(0.6))),
+            child: Text('Keep', style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -173,16 +173,16 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.calendar_month_outlined, size: 64,
-                                color: Colors.white.withOpacity(0.25)),
+                                color: Colors.white.withValues(alpha: 0.25)),
                             const SizedBox(height: 16),
                             Text('No appointments yet',
                                 style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: Colors.white.withValues(alpha: 0.8),
                                     fontSize: 18, fontWeight: FontWeight.w600)),
                             const SizedBox(height: 8),
                             Text('Tap + to book your first appointment',
                                 style: TextStyle(
-                                    color: Colors.white.withOpacity(0.5), fontSize: 14)),
+                                    color: Colors.white.withValues(alpha: 0.5), fontSize: 14)),
                           ],
                         ),
                       );
@@ -270,7 +270,7 @@ class _AppointmentCard extends StatelessWidget {
             Container(
               width: 44, height: 44,
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.15),
+                color: AppColors.accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(13),
               ),
               child: const Icon(Icons.person, color: AppColors.accent, size: 22),
@@ -284,27 +284,27 @@ class _AppointmentCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Row(children: [
                   Icon(Icons.calendar_today, size: 11,
-                      color: Colors.white.withOpacity(0.45)),
+                      color: Colors.white.withValues(alpha: 0.45)),
                   const SizedBox(width: 4),
                   Text(dateLabel,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.55), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.55), fontSize: 12)),
                   const SizedBox(width: 10),
                   Icon(Icons.access_time, size: 11,
-                      color: Colors.white.withOpacity(0.45)),
+                      color: Colors.white.withValues(alpha: 0.45)),
                   const SizedBox(width: 4),
                   Text(appt.time,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.55), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.55), fontSize: 12)),
                 ]),
               ]),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.12),
+                color: statusColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: statusColor.withOpacity(0.35)),
+                border: Border.all(color: statusColor.withValues(alpha: 0.35)),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(statusIcon, color: statusColor, size: 12),
@@ -323,11 +323,11 @@ class _AppointmentCard extends StatelessWidget {
             GestureDetector(
               onTap: onCancel,
               child: Row(children: [
-                Icon(Icons.close, size: 14, color: Colors.white.withOpacity(0.35)),
+                Icon(Icons.close, size: 14, color: Colors.white.withValues(alpha: 0.35)),
                 const SizedBox(width: 6),
                 Text('Cancel appointment',
                     style: TextStyle(
-                        color: Colors.white.withOpacity(0.35),
+                        color: Colors.white.withValues(alpha: 0.35),
                         fontSize: 12,
                         fontWeight: FontWeight.w500)),
               ]),
@@ -353,7 +353,7 @@ class _SectionTitle extends StatelessWidget {
     Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.accent.withOpacity(0.15),
+        color: AppColors.accent.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text('$count',

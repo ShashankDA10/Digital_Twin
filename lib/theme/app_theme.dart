@@ -145,7 +145,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.white,
-          side: BorderSide(color: AppColors.outline.withOpacity(0.8)),
+          side: BorderSide(color: AppColors.outline.withValues(alpha: 0.8)),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -167,7 +167,7 @@ class AppTheme {
         labelStyle: const TextStyle(color: Colors.white),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(999),
-          side: BorderSide(color: AppColors.outline.withOpacity(0.6)),
+          side: BorderSide(color: AppColors.outline.withValues(alpha: 0.6)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

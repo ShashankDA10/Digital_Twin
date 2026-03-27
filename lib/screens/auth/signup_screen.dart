@@ -198,7 +198,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 // ── Role selector ────────────────────────────────────────
                 Text('I am a',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.65),
+                      color: Colors.white.withValues(alpha: 0.65),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     )).animate().fadeIn(delay: 380.ms, duration: 400.ms),
@@ -252,7 +252,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       text: TextSpan(
                         text: 'Already have an account? ',
                         style: TextStyle(
-                            color: Colors.white.withOpacity(0.5)),
+                            color: Colors.white.withValues(alpha: 0.5)),
                         children: const [
                           TextSpan(
                             text: 'Sign In',
@@ -299,7 +299,7 @@ class _RoleChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: selected
-                ? AppColors.accent.withOpacity(0.15)
+                ? AppColors.accent.withValues(alpha: 0.15)
                 : AppColors.surfaceElevated,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(

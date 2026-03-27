@@ -227,17 +227,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.description_outlined, size: 64,
-                          color: Colors.white.withOpacity(0.3)),
+                          color: Colors.white.withValues(alpha: 0.3)),
                       const SizedBox(height: 16),
                       Text('No reports yet',
-                          style: TextStyle(color: Colors.white.withOpacity(0.8),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.8),
                               fontSize: 18, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       Text(
                           _currentUser?.isDoctor == true
                               ? 'Tap + to add your first report'
                               : 'Tap the scan button to add your own reports',
-                          style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14)),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14)),
                     ],
                   ),
                 )
@@ -269,7 +269,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                 width: 46,
                                 height: 46,
                                 decoration: BoxDecoration(
-                                  color: cat.color.withOpacity(0.15),
+                                  color: cat.color.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(13),
                                 ),
                                 child: Icon(cat.icon, color: cat.color, size: 22),
@@ -291,7 +291,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                     Text(
                                       '${r['category']} › ${r['type']}',
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.5),
+                                        color: Colors.white.withValues(alpha: 0.5),
                                         fontSize: 12,
                                       ),
                                     ),
@@ -299,7 +299,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                     Text(
                                       _formatDate(r['date']),
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.4),
+                                        color: Colors.white.withValues(alpha: 0.4),
                                         fontSize: 11,
                                       ),
                                     ),
@@ -315,7 +315,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: AppColors.accent.withOpacity(0.15),
+                                        color: AppColors.accent.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(999),
                                       ),
                                       child: const Text('+ Med',
@@ -331,7 +331,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: AppColors.accentBlue.withOpacity(0.15),
+                                        color: AppColors.accentBlue.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(999),
                                       ),
                                       child: const Text('Self',
@@ -595,7 +595,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 decoration: BoxDecoration(
-                  color: selected ? cat.color.withOpacity(0.18) : AppColors.surfaceElevated,
+                  color: selected ? cat.color.withValues(alpha: 0.18) : AppColors.surfaceElevated,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: selected ? cat.color : Colors.white12,
@@ -640,7 +640,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
         ]),
         const SizedBox(height: 6),
-        Text('Select the report type', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
+        Text('Select the report type', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
         const SizedBox(height: 16),
         ...types.map((t) {
           final selected = _selectedType == t;
@@ -651,7 +651,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: selected ? _selectedCat!.color.withOpacity(0.15) : AppColors.surfaceElevated,
+                color: selected ? _selectedCat!.color.withValues(alpha: 0.15) : AppColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: selected ? _selectedCat!.color : Colors.white12,
@@ -727,7 +727,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
         const SizedBox(height: 18),
         // Tags
         Text('Chronic Condition Tags',
-            style: TextStyle(color: Colors.white.withOpacity(0.65),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.65),
                 fontSize: 13, fontWeight: FontWeight.w600)),
         const SizedBox(height: 10),
         Wrap(
@@ -741,7 +741,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
-                  color: on ? AppColors.accent.withOpacity(0.18) : AppColors.surfaceElevated,
+                  color: on ? AppColors.accent.withValues(alpha: 0.18) : AppColors.surfaceElevated,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: on ? AppColors.accent : Colors.white12),
                 ),
@@ -762,7 +762,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: _addMedication
-                  ? AppColors.accent.withOpacity(0.12)
+                  ? AppColors.accent.withValues(alpha: 0.12)
                   : AppColors.surfaceElevated,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
@@ -789,7 +789,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
 
         // ── Attachments ────────────────────────────────────────────────────
         Text('Attachments',
-            style: TextStyle(color: Colors.white.withOpacity(0.65),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.65),
                 fontSize: 13, fontWeight: FontWeight.w600)),
         const SizedBox(height: 10),
         if (_attachments.isNotEmpty) ...[
@@ -802,9 +802,9 @@ class _AddReportSheetState extends State<_AddReportSheet> {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
-                  color: AppColors.accentBlue.withOpacity(0.12),
+                  color: AppColors.accentBlue.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.accentBlue.withOpacity(0.35)),
+                  border: Border.all(color: AppColors.accentBlue.withValues(alpha: 0.35)),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   Icon(_fileIcon(att.name), color: AppColors.accentBlue, size: 16),
@@ -843,7 +843,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
                   ? const SizedBox(width: 18, height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent))
                   : Icon(Icons.upload_file_outlined,
-                      size: 18, color: Colors.white.withOpacity(0.5)),
+                      size: 18, color: Colors.white.withValues(alpha: 0.5)),
               const SizedBox(width: 10),
               Text(
                 _uploading ? 'Uploading…' : 'Upload PDF / Image',
@@ -881,7 +881,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
         Text('Medication Details', style: Theme.of(context).textTheme.titleLarge
             ?.copyWith(fontWeight: FontWeight.w700)),
         Text('This will also appear in the Medication tab',
-            style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
         const SizedBox(height: 16),
 
         // ── Doctor: patient email lookup ──────────────────────────────────
@@ -958,7 +958,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
               const SizedBox(width: 6),
               Text('Patient linked — medication will appear on their screen',
                   style: TextStyle(
-                      color: AppColors.success.withOpacity(0.85), fontSize: 12)),
+                      color: AppColors.success.withValues(alpha: 0.85), fontSize: 12)),
             ]),
           ],
           const SizedBox(height: 16),
@@ -977,7 +977,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
             validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null),
         const SizedBox(height: 18),
         Text('Times per day',
-            style: TextStyle(color: Colors.white.withOpacity(0.65),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.65),
                 fontSize: 13, fontWeight: FontWeight.w600)),
         const SizedBox(height: 10),
         Row(
@@ -992,7 +992,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
                   margin: EdgeInsets.only(right: n < 4 ? 8 : 0),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.accent.withOpacity(0.18) : AppColors.surfaceElevated,
+                    color: selected ? AppColors.accent.withValues(alpha: 0.18) : AppColors.surfaceElevated,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         color: selected ? AppColors.accent : Colors.white12,
@@ -1001,14 +1001,14 @@ class _AddReportSheetState extends State<_AddReportSheet> {
                   child: Column(
                     children: [
                       Text('$n×', style: TextStyle(
-                          color: selected ? AppColors.accent : Colors.white.withOpacity(0.45),
+                          color: selected ? AppColors.accent : Colors.white.withValues(alpha: 0.45),
                           fontWeight: FontWeight.w700, fontSize: 16)),
                       const SizedBox(height: 3),
                       Text(slotLabels.join('\n'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: selected ? AppColors.accent.withOpacity(0.8)
-                                  : Colors.white.withOpacity(0.3),
+                              color: selected ? AppColors.accent.withValues(alpha: 0.8)
+                                  : Colors.white.withValues(alpha: 0.3),
                               fontSize: 9)),
                     ],
                   ),
@@ -1030,7 +1030,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
             ),
             child: Row(children: [
               Icon(Icons.calendar_today_outlined, size: 18,
-                  color: _medTillDate != null ? AppColors.accent : Colors.white.withOpacity(0.45)),
+                  color: _medTillDate != null ? AppColors.accent : Colors.white.withValues(alpha: 0.45)),
               const SizedBox(width: 10),
               Text(
                 _medTillDate == null
@@ -1043,7 +1043,7 @@ class _AddReportSheetState extends State<_AddReportSheet> {
                 const Spacer(),
                 GestureDetector(
                   onTap: () => setState(() => _medTillDate = null),
-                  child: Icon(Icons.close, size: 16, color: Colors.white.withOpacity(0.4)),
+                  child: Icon(Icons.close, size: 16, color: Colors.white.withValues(alpha: 0.4)),
                 ),
               ],
             ]),
@@ -1181,8 +1181,8 @@ class _RField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13),
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.25)),
+        labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 13),
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.25)),
         filled: true,
         fillColor: AppColors.surfaceElevated,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),

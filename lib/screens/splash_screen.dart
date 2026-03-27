@@ -131,7 +131,7 @@ class SplashScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
+                    Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const AvatarScreen(),
                       ),
@@ -158,7 +158,7 @@ class SplashScreen extends StatelessWidget {
                         content: Text(
                           'A living, secure view of your health story, updated by your devices, reports, and clinical notes.',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                         ),
                         actions: [
@@ -192,9 +192,9 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(
         label,
@@ -240,14 +240,14 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated.withOpacity(0.8),
+        color: AppColors.surfaceElevated.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.outline.withOpacity(0.6)),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.6)),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white.withOpacity(0.85),
+              color: Colors.white.withValues(alpha: 0.85),
               fontWeight: FontWeight.w600,
             ),
       ),

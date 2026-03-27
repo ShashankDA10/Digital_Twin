@@ -88,7 +88,9 @@ class _DoctorPatientSummaryScreenState
       final now = DateTime.now();
       int age = now.year - dt.year;
       if (now.month < dt.month ||
-          (now.month == dt.month && now.day < dt.day)) age--;
+          (now.month == dt.month && now.day < dt.day)) {
+        age--;
+      }
       return age;
     } catch (_) {
       return null;
@@ -358,7 +360,7 @@ class _DoctorPatientSummaryScreenState
             _reports.length, AppColors.accentBlue),
         const SizedBox(height: 10),
         if (_reports.isEmpty)
-          _EmptyTxt('No reports on file')
+          const _EmptyTxt('No reports on file')
         else
           ..._reports.map((r) => _ReportTile(
                 report: r,

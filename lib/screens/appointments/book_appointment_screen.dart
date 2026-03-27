@@ -188,7 +188,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               snap.data?.isEmpty == true
                   ? 'No doctors available at the moment.'
                   : 'Failed to load doctors. Please try again.',
-              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
               textAlign: TextAlign.center,
             ),
           );
@@ -216,7 +216,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 Container(
                   width: 48, height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.15),
+                    color: AppColors.accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(Icons.person, color: AppColors.accent, size: 24),
@@ -229,7 +229,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                             color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
                     const SizedBox(height: 3),
                     Text(doc.email,
-                        style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
                   ]),
                 ),
                 ElevatedButton(
@@ -266,7 +266,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               Container(
                 width: 44, height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.15),
+                  color: AppColors.accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.person, color: AppColors.accent, size: 22),
@@ -294,9 +294,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.accentBlue.withOpacity(0.12),
+                  color: AppColors.accentBlue.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.accentBlue.withOpacity(0.35)),
+                  border: Border.all(color: AppColors.accentBlue.withValues(alpha: 0.35)),
                 ),
                 child: const Text('Change',
                     style: TextStyle(
@@ -310,7 +310,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
           Text('Available Slots',
               style: TextStyle(
-                  color: Colors.white.withOpacity(0.65),
+                  color: Colors.white.withValues(alpha: 0.65),
                   fontSize: 13,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
@@ -334,7 +334,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   duration: const Duration(milliseconds: 160),
                   decoration: BoxDecoration(
                     color: sel
-                        ? AppColors.accent.withOpacity(0.18)
+                        ? AppColors.accent.withValues(alpha: 0.18)
                         : AppColors.surfaceElevated,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
@@ -345,7 +345,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                   child: Center(
                     child: Text(slot,
                         style: TextStyle(
-                          color: sel ? AppColors.accent : Colors.white.withOpacity(0.65),
+                          color: sel ? AppColors.accent : Colors.white.withValues(alpha: 0.65),
                           fontSize: 12,
                           fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                         )),
@@ -423,18 +423,18 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.accentAmber.withOpacity(0.08),
+              color: AppColors.accentAmber.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.accentAmber.withOpacity(0.25)),
+              border: Border.all(color: AppColors.accentAmber.withValues(alpha: 0.25)),
             ),
             child: Row(children: [
-              Icon(Icons.info_outline, color: AppColors.accentAmber.withOpacity(0.8), size: 16),
+              Icon(Icons.info_outline, color: AppColors.accentAmber.withValues(alpha: 0.8), size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Your request will be sent to the doctor for approval.',
                   style: TextStyle(
-                      color: Colors.white.withOpacity(0.6), fontSize: 12, height: 1.4),
+                      color: Colors.white.withValues(alpha: 0.6), fontSize: 12, height: 1.4),
                 ),
               ),
             ]),
@@ -478,7 +478,7 @@ class _SectionHeader extends StatelessWidget {
       Container(
         width: 40, height: 40,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: color, size: 20),
@@ -489,7 +489,7 @@ class _SectionHeader extends StatelessWidget {
             style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
         Text(sub,
-            style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12)),
       ]),
     ]);
   }
@@ -514,7 +514,7 @@ class _ConfirmRow extends StatelessWidget {
       Container(
         width: 36, height: 36,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
+          color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: color, size: 18),
@@ -522,7 +522,7 @@ class _ConfirmRow extends StatelessWidget {
       const SizedBox(width: 14),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label,
-            style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 11)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 11)),
         const SizedBox(height: 2),
         Text(value,
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),

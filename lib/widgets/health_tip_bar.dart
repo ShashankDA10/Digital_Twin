@@ -75,7 +75,7 @@ class _HealthTipBarState extends State<HealthTipBar>
                 key: ValueKey(index),
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.85),
+                  color: Colors.white.withValues(alpha: 0.85),
                 ),
               ),
             ),
@@ -87,12 +87,12 @@ class _HealthTipBarState extends State<HealthTipBar>
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: themeColor.withOpacity(0.18),
-                border: Border.all(color: themeColor.withOpacity(0.6)),
+                color: themeColor.withValues(alpha: 0.18),
+                border: Border.all(color: themeColor.withValues(alpha: 0.6)),
                 boxShadow: glow
                     ? [
                         BoxShadow(
-                          color: themeColor.withOpacity(0.4),
+                          color: themeColor.withValues(alpha: 0.4),
                           blurRadius: 18,
                           spreadRadius: 1,
                         )

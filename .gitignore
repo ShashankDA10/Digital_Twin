@@ -26,9 +26,17 @@ ENV/
 dist/
 build/
 
-# Environment
+# Environment & secrets
 .env
 .env.local
+backend/.env
+**/firebase-service-account.json
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Logs
+backend/server.log
+*.log
 
 # OS
 .DS_Store

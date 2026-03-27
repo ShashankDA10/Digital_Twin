@@ -82,16 +82,16 @@ class DoctorAppointmentsScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.event_available_outlined, size: 64,
-                      color: Colors.white.withOpacity(0.25)),
+                      color: Colors.white.withValues(alpha: 0.25)),
                   const SizedBox(height: 16),
                   Text('No appointment requests',
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 18, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Text('Requests from patients will appear here',
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.5), fontSize: 14)),
+                          color: Colors.white.withValues(alpha: 0.5), fontSize: 14)),
                 ],
               ),
             );
@@ -118,7 +118,7 @@ class DoctorAppointmentsScreen extends StatelessWidget {
               ],
               if (resolved.isNotEmpty) ...[
                 _SectionTitle('Resolved', resolved.length,
-                    Colors.white.withOpacity(0.4)),
+                    Colors.white.withValues(alpha: 0.4)),
                 const SizedBox(height: 10),
                 ...resolved.asMap().entries.map((e) => _RequestCard(
                   appt:        e.value,
@@ -188,7 +188,7 @@ class _RequestCard extends StatelessWidget {
             Container(
               width: 44, height: 44,
               decoration: BoxDecoration(
-                color: AppColors.accentViolet.withOpacity(0.15),
+                color: AppColors.accentViolet.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(13),
               ),
               child: const Icon(Icons.person, color: AppColors.accentViolet, size: 22),
@@ -202,27 +202,27 @@ class _RequestCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Row(children: [
                   Icon(Icons.calendar_today, size: 11,
-                      color: Colors.white.withOpacity(0.45)),
+                      color: Colors.white.withValues(alpha: 0.45)),
                   const SizedBox(width: 4),
                   Text(dateLabel,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.55), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.55), fontSize: 12)),
                   const SizedBox(width: 10),
                   Icon(Icons.access_time, size: 11,
-                      color: Colors.white.withOpacity(0.45)),
+                      color: Colors.white.withValues(alpha: 0.45)),
                   const SizedBox(width: 4),
                   Text(appt.time,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.55), fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.55), fontSize: 12)),
                 ]),
               ]),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: sColor.withOpacity(0.12),
+                color: sColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: sColor.withOpacity(0.35)),
+                border: Border.all(color: sColor.withValues(alpha: 0.35)),
               ),
               child: Text(_statusLabel(appt.status),
                   style: TextStyle(
@@ -286,7 +286,7 @@ class _SectionTitle extends StatelessWidget {
     Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text('$count',

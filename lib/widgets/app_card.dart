@@ -46,12 +46,12 @@ class AppCard extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: (borderColor ?? AppColors.outline).withOpacity(0.7),
+          color: (borderColor ?? AppColors.outline).withValues(alpha: 0.7),
         ),
         boxShadow: glow
             ? [
                 BoxShadow(
-                  color: (glowColor ?? AppColors.accent).withOpacity(0.2),
+                  color: (glowColor ?? AppColors.accent).withValues(alpha: 0.2),
                   blurRadius: 24,
                   spreadRadius: 1,
                   offset: const Offset(0, 8),

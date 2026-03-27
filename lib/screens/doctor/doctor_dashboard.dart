@@ -302,7 +302,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                             Container(
                               width: 44, height: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.accent.withOpacity(0.18),
+                                color: AppColors.accent.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(13),
                               ),
                               child: const Icon(Icons.person, color: AppColors.accent, size: 22),
@@ -316,7 +316,7 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
                                       fontSize: 15)),
                             ),
                             Icon(Icons.chevron_right,
-                                color: Colors.white.withOpacity(0.3), size: 20),
+                                color: Colors.white.withValues(alpha: 0.3), size: 20),
                           ]),
                         ),
                       ),
@@ -381,7 +381,7 @@ class _PatientDetailSheetState extends State<_PatientDetailSheet> {
             Container(
               width: 52, height: 52,
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.18),
+                color: AppColors.accent.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Icon(Icons.person, color: AppColors.accent, size: 26),
@@ -395,13 +395,13 @@ class _PatientDetailSheetState extends State<_PatientDetailSheet> {
                 if (widget.patient.email.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(widget.patient.email,
-                      style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12),
                       overflow: TextOverflow.ellipsis),
                 ],
                 if (widget.patient.phone.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(widget.patient.phone,
-                      style: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 12)),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 12)),
                 ],
               ]),
             ),
@@ -500,7 +500,7 @@ class _SectionHeader extends StatelessWidget {
     Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-          color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+          color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
       child: Text('$count',
           style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
     ),
@@ -515,7 +515,7 @@ class _EmptySectionText extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 6),
     child: Text(text,
-        style: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 13)),
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 13)),
   );
 }
 
@@ -555,13 +555,13 @@ class _PatientReportRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis),
             if (cat.isNotEmpty)
               Text(cat,
-                  style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
                   overflow: TextOverflow.ellipsis),
           ]),
         ),
         if (dateStr.isNotEmpty)
           Text(dateStr,
-              style: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 11)),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 11)),
       ]),
     );
   }
@@ -596,7 +596,7 @@ class _PatientMedRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis),
             if (detail.isNotEmpty)
               Text(detail,
-                  style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
                   overflow: TextOverflow.ellipsis),
           ]),
         ),
@@ -625,9 +625,9 @@ class _ActionBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
+          color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.35)),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -955,7 +955,7 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
             style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
         Text('Step 1 of 3 · Choose a report category',
-            style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 13)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 13)),
         const SizedBox(height: 20),
         GridView.builder(
           shrinkWrap: true,
@@ -974,9 +974,9 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: cat.color.withOpacity(0.1),
+                  color: cat.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: cat.color.withOpacity(0.35)),
+                  border: Border.all(color: cat.color.withValues(alpha: 0.35)),
                 ),
                 child: Row(children: [
                   Icon(cat.icon, color: cat.color, size: 18),
@@ -1014,7 +1014,7 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
                 color: AppColors.surfaceElevated,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(0.7), size: 18),
+              child: Icon(Icons.arrow_back, color: Colors.white.withValues(alpha: 0.7), size: 18),
             ),
           ),
           const SizedBox(width: 12),
@@ -1024,13 +1024,13 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
                   style: const TextStyle(
                       color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
               Text('Step 2 of 3 · Select type',
-                  style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12)),
             ]),
           ),
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: cat.color.withOpacity(0.12),
+              color: cat.color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(cat.icon, color: cat.color, size: 20),
@@ -1053,7 +1053,7 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
                 child: Text(type,
                     style: const TextStyle(color: Colors.white, fontSize: 14)),
               ),
-              Icon(Icons.chevron_right, color: Colors.white.withOpacity(0.3), size: 18),
+              Icon(Icons.chevron_right, color: Colors.white.withValues(alpha: 0.3), size: 18),
             ]),
           ),
         )).toList(),
@@ -1082,7 +1082,7 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
                   color: AppColors.surfaceElevated,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.arrow_back, color: Colors.white.withOpacity(0.7), size: 18),
+                child: Icon(Icons.arrow_back, color: Colors.white.withValues(alpha: 0.7), size: 18),
               ),
             ),
             const SizedBox(width: 12),
@@ -1091,7 +1091,7 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
                 const Text('Report Details',
                     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
                 Text('Step 3 of 3',
-                    style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12)),
               ]),
             ),
           ]),
@@ -1102,7 +1102,7 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: cat.color.withOpacity(0.12),
+                color: cat.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -1117,11 +1117,11 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
+                  color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(_selType,
-                    style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
                     overflow: TextOverflow.ellipsis),
               ),
             ),
@@ -1226,10 +1226,10 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
                     ? const SizedBox(width: 18, height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent))
                     : Icon(Icons.upload_file_outlined, size: 18,
-                        color: Colors.white.withOpacity(0.45)),
+                        color: Colors.white.withValues(alpha: 0.45)),
                 const SizedBox(width: 10),
                 Text(_uploading ? 'Uploading…' : 'Upload PDF / Image',
-                    style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 14)),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14)),
               ]),
             ),
           ),
@@ -1239,9 +1239,9 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF10b981).withOpacity(0.1),
+                color: const Color(0xFF10b981).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF10b981).withOpacity(0.35)),
+                border: Border.all(color: const Color(0xFF10b981).withValues(alpha: 0.35)),
               ),
               child: const Row(children: [
                 Icon(Icons.check_circle_outline, color: Color(0xFF10b981), size: 20),
@@ -1298,8 +1298,8 @@ class _DoctorReportFormState extends State<_DoctorReportForm> {
 
   InputDecoration _areaDecor(String label, String hint) => InputDecoration(
     labelText: label, hintText: hint,
-    labelStyle: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13),
-    hintStyle: TextStyle(color: Colors.white.withOpacity(0.25)),
+    labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 13),
+    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.25)),
     filled: true, fillColor: AppColors.surfaceElevated,
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: Colors.white12)),
@@ -1469,7 +1469,7 @@ class _DoctorMedFormState extends State<_DoctorMedForm> {
                       duration: const Duration(milliseconds: 160),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                       decoration: BoxDecoration(
-                        color: sel ? AppColors.accent.withOpacity(0.18) : AppColors.surfaceElevated,
+                        color: sel ? AppColors.accent.withValues(alpha: 0.18) : AppColors.surfaceElevated,
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(
                           color: sel ? AppColors.accent : Colors.white12,
@@ -1478,7 +1478,7 @@ class _DoctorMedFormState extends State<_DoctorMedForm> {
                       ),
                       child: Text(opt,
                           style: TextStyle(
-                            color: sel ? AppColors.accent : Colors.white.withOpacity(0.55),
+                            color: sel ? AppColors.accent : Colors.white.withValues(alpha: 0.55),
                             fontSize: 13,
                             fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                           )),
@@ -1503,7 +1503,7 @@ class _DoctorMedFormState extends State<_DoctorMedForm> {
                         margin: EdgeInsets.only(right: n < 4 ? 8 : 0),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: sel ? AppColors.accent.withOpacity(0.18) : AppColors.surfaceElevated,
+                          color: sel ? AppColors.accent.withValues(alpha: 0.18) : AppColors.surfaceElevated,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                               color: sel ? AppColors.accent : Colors.white12,
@@ -1597,9 +1597,9 @@ class _DoctorChip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(
-      color: AppColors.accent.withOpacity(0.12),
+      color: AppColors.accent.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+      border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
       const Icon(Icons.person, color: AppColors.accent, size: 16),
@@ -1617,7 +1617,7 @@ class _Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(text,
       style: TextStyle(
-          color: Colors.white.withOpacity(0.65),
+          color: Colors.white.withValues(alpha: 0.65),
           fontSize: 13,
           fontWeight: FontWeight.w600));
 }
@@ -1631,9 +1631,9 @@ class _AttachChip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     decoration: BoxDecoration(
-      color: AppColors.accent.withOpacity(0.12),
+      color: AppColors.accent.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+      border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
       const Icon(Icons.attach_file, color: AppColors.accent, size: 14),
@@ -1647,7 +1647,7 @@ class _AttachChip extends StatelessWidget {
       const SizedBox(width: 6),
       GestureDetector(
         onTap: onRemove,
-        child: Icon(Icons.close, size: 14, color: AppColors.accent.withOpacity(0.6)),
+        child: Icon(Icons.close, size: 14, color: AppColors.accent.withValues(alpha: 0.6)),
       ),
     ]),
   );
@@ -1662,12 +1662,12 @@ class _Empty extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Icon(icon, size: 64, color: Colors.white.withOpacity(0.25)),
+      Icon(icon, size: 64, color: Colors.white.withValues(alpha: 0.25)),
       const SizedBox(height: 16),
       Text(message, style: TextStyle(
-          color: Colors.white.withOpacity(0.8), fontSize: 18, fontWeight: FontWeight.w600)),
+          color: Colors.white.withValues(alpha: 0.8), fontSize: 18, fontWeight: FontWeight.w600)),
       const SizedBox(height: 8),
-      Text(sub, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14)),
+      Text(sub, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14)),
     ]),
   );
 }

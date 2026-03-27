@@ -142,10 +142,10 @@ class ParticlePainter extends CustomPainter {
       final effectiveSize = particle.size * depthScale;
       final effectiveOpacity = particle.opacity * (0.5 + particle.depth * 0.5);
 
-      particlePaint.color = particleColor.withOpacity(effectiveOpacity);
+      particlePaint.color = particleColor.withValues(alpha: effectiveOpacity);
 
       final glowPaint = Paint()
-        ..color = particleColor.withOpacity(effectiveOpacity * 0.25)
+        ..color = particleColor.withValues(alpha: effectiveOpacity * 0.25)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
       canvas.drawCircle(
@@ -170,7 +170,7 @@ class ParticlePainter extends CustomPainter {
         if (distance < 150) {
           final connectionOpacity = (1 - distance / 150) * 0.08;
           final connectionPaint = Paint()
-            ..color = particleColor.withOpacity(connectionOpacity)
+            ..color = particleColor.withValues(alpha: connectionOpacity)
             ..strokeWidth = 0.5;
 
           canvas.drawLine(
@@ -190,10 +190,10 @@ class ParticlePainter extends CustomPainter {
       final starY = (random.nextDouble() * size.height);
       final twinkle = (math.sin(progress * math.pi * 2 + i) + 1) / 2;
 
-      starPaint.color = Colors.white.withOpacity(0.3 + twinkle * 0.7);
+      starPaint.color = Colors.white.withValues(alpha: 0.3 + twinkle * 0.7);
 
       final starGlow = Paint()
-        ..color = Colors.white.withOpacity(twinkle * 0.2)
+        ..color = Colors.white.withValues(alpha: twinkle * 0.2)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
 
       canvas.drawCircle(Offset(starX, starY), 3, starGlow);

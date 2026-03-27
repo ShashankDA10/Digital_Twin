@@ -232,13 +232,13 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       Icon(
                         Icons.medication_outlined,
                         size: 64,
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No medications',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
@@ -247,7 +247,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                       Text(
                         'Tap + to add your medications',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 14,
                         ),
                       ),
@@ -274,7 +274,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: AppColors.accentViolet.withOpacity(0.2),
+                                  color: AppColors.accentViolet.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
@@ -301,7 +301,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                           ? '${med.dosage} · ${med.frequency}'
                                           : med.dosage,
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.7),
+                                        color: Colors.white.withValues(alpha: 0.7),
                                         fontSize: 14,
                                       ),
                                     ),
@@ -315,8 +315,8 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: allTaken
-                                      ? AppColors.success.withOpacity(0.2)
-                                      : AppColors.accentViolet.withOpacity(0.2),
+                                      ? AppColors.success.withValues(alpha: 0.2)
+                                      : AppColors.accentViolet.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
@@ -341,13 +341,13 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                 Icon(
                                   Icons.calendar_today,
                                   size: 13,
-                                  color: Colors.white.withOpacity(0.45),
+                                  color: Colors.white.withValues(alpha: 0.45),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Till ${_formatDate(med.tillDate!)}',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.45),
+                                    color: Colors.white.withValues(alpha: 0.45),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -362,7 +362,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                           Text(
                             "Today's doses",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.45),
+                              color: Colors.white.withValues(alpha: 0.45),
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.4,
@@ -384,12 +384,12 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: taken
-                                          ? AppColors.accent.withOpacity(0.15)
+                                          ? AppColors.accent.withValues(alpha: 0.15)
                                           : AppColors.surfaceElevated,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: taken
-                                            ? AppColors.accent.withOpacity(0.55)
+                                            ? AppColors.accent.withValues(alpha: 0.55)
                                             : Colors.white12,
                                       ),
                                     ),
@@ -412,7 +412,7 @@ class _MedicationScreenState extends State<MedicationScreen> {
                                           style: TextStyle(
                                             color: taken
                                                 ? AppColors.accent
-                                                : Colors.white.withOpacity(0.45),
+                                                : Colors.white.withValues(alpha: 0.45),
                                             fontSize: 10,
                                             fontWeight: FontWeight.w600,
                                             letterSpacing: 0.2,
@@ -525,7 +525,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
+    return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, 20, 20, bottom + 24),
       child: Form(
         key: _formKey,
@@ -576,7 +576,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
             Text(
               'Intake Timing',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.65),
+                color: Colors.white.withValues(alpha: 0.65),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -594,7 +594,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                     decoration: BoxDecoration(
                       color: sel
-                          ? AppColors.accent.withOpacity(0.18)
+                          ? AppColors.accent.withValues(alpha: 0.18)
                           : AppColors.surfaceElevated,
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(
@@ -605,7 +605,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                     child: Text(
                       opt,
                       style: TextStyle(
-                        color: sel ? AppColors.accent : Colors.white.withOpacity(0.55),
+                        color: sel ? AppColors.accent : Colors.white.withValues(alpha: 0.55),
                         fontSize: 13,
                         fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                       ),
@@ -620,7 +620,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
             Text(
               'Times per day',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.65),
+                color: Colors.white.withValues(alpha: 0.65),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -638,7 +638,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                     height: 52,
                     decoration: BoxDecoration(
                       color: selected
-                          ? AppColors.accent.withOpacity(0.18)
+                          ? AppColors.accent.withValues(alpha: 0.18)
                           : AppColors.surfaceElevated,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
@@ -652,7 +652,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                         style: TextStyle(
                           color: selected
                               ? AppColors.accent
-                              : Colors.white.withOpacity(0.45),
+                              : Colors.white.withValues(alpha: 0.45),
                           fontWeight: FontWeight.w700,
                           fontSize: 17,
                         ),
@@ -681,7 +681,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                       size: 18,
                       color: _tillDate != null
                           ? AppColors.accent
-                          : Colors.white.withOpacity(0.45),
+                          : Colors.white.withValues(alpha: 0.45),
                     ),
                     const SizedBox(width: 10),
                     Text(
@@ -700,7 +700,7 @@ class _AddMedicationSheetState extends State<_AddMedicationSheet> {
                         child: Icon(
                           Icons.close,
                           size: 16,
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                         ),
                       ),
                     ],
@@ -758,8 +758,8 @@ class _Field extends StatelessWidget {
         labelText: label,
         hintText: hint,
         labelStyle:
-            TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13),
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.25)),
+            TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 13),
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.25)),
         filled: true,
         fillColor: AppColors.surfaceElevated,
         border: OutlineInputBorder(
