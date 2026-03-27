@@ -12,7 +12,9 @@
       "Bash(flutter build:*)",
       "Bash(yes)",
       "Bash(flutter doctor:*)",
-      "Bash(flutter devices:*)"
+      "Bash(flutter devices:*)",
+      "Bash(git config:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
