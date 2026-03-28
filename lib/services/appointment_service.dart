@@ -66,4 +66,43 @@ class AppointmentService {
 
   static Future<void> cancel(String id) =>
       _col.doc(id).update({'status': 'cancelled'});
+
+  // ── Reschedule / cancel by doctor ─────────────────────────────────────────
+
+  /// Doctor proposes a new date+time. Status → 'reschedule_pending'.
+  static Future<void> proposeReschedule(
+      String id, DateTime newDate, String newTime) =>
+      _col.doc(id).update({
+        'status':         'reschedule_pending',
+        'rescheduleDate': Timestamp.fromDate(
+            DateTime(newDate.year, newDate.month, newDate.day)),
+        'rescheduleTime': newTime,
+      });
+
+  /// Doctor cancels an approved appointment.
+  static Future<void> cancelByDoctor(String id) =>
+      _col.doc(id).update({'status': 'cancelled_by_doctor'});
+
+  // ── Patient responds to reschedule proposal ───────────────────────────────
+
+  /// Patient accepts the proposed reschedule. Date+time updated, status → 'approved'.
+  static Future<void> acceptReschedule(
+      String id, DateTime newDate, String newTime) =>
+      _col.doc(id).update({
+        'status':             'approved',
+        'date':               Timestamp.fromDate(
+            DateTime(newDate.year, newDate.month, newDate.day)),
+        'time':               newTime,
+        'rescheduleAccepted': true,
+        'rescheduleDate':     FieldValue.delete(),
+        'rescheduleTime':     FieldValue.delete(),
+      });
+
+  /// Patient declines the proposed reschedule. Status → 'cancelled'.
+  static Future<void> declineReschedule(String id) =>
+      _col.doc(id).update({
+        'status':         'cancelled',
+        'rescheduleDate': FieldValue.delete(),
+        'rescheduleTime': FieldValue.delete(),
+      });
 }

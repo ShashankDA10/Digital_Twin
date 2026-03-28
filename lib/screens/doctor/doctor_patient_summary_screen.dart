@@ -441,7 +441,7 @@ class _DoctorPatientSummaryScreenState
   Widget _buildVitalsSection() {
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _SecHeader(Icons.monitor_heart_outlined, 'Vitals',
+        const _SecHeader(Icons.monitor_heart_outlined, 'Vitals',
             0, AppColors.accentRose),
         const SizedBox(height: 12),
         Container(
@@ -484,7 +484,7 @@ class _DoctorPatientSummaryScreenState
 
     return AppCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _SecHeader(Icons.phone_outlined, 'Emergency Contact',
+        const _SecHeader(Icons.phone_outlined, 'Emergency Contact',
             0, AppColors.accentAmber),
         const SizedBox(height: 10),
         _InfoRow('Name', name),

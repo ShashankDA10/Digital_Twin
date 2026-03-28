@@ -1,15 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Appointment {
-  final String   id;
-  final String   patientId;
-  final String   doctorId;
-  final String   patientName;
-  final String   doctorName;
-  final DateTime date;
-  final String   time;   // e.g. "10:30 AM"
-  final String   status; // 'pending' | 'approved' | 'rejected'
-  final DateTime createdAt;
+  final String    id;
+  final String    patientId;
+  final String    doctorId;
+  final String    patientName;
+  final String    doctorName;
+  final DateTime  date;
+  final String    time;   // e.g. "10:30 AM"
+  final String    status; // 'pending' | 'approved' | 'rejected' | 'cancelled' | 'reschedule_pending' | 'cancelled_by_doctor'
+  final DateTime  createdAt;
+  final DateTime? rescheduleDate;     // proposed new date (set when status == 'reschedule_pending')
+  final String?   rescheduleTime;     // proposed new time
+  final bool      rescheduleAccepted; // true after patient accepts a reschedule proposal
 
   const Appointment({
     required this.id,
@@ -21,6 +24,9 @@ class Appointment {
     required this.time,
     required this.status,
     required this.createdAt,
+    this.rescheduleDate,
+    this.rescheduleTime,
+    this.rescheduleAccepted = false,
   });
 
   factory Appointment.fromFirestore(String id, Map<String, dynamic> d) {
@@ -30,21 +36,26 @@ class Appointment {
     }
 
     return Appointment(
-      id:          id,
-      patientId:   d['patientId']   as String? ?? '',
-      doctorId:    d['doctorId']    as String? ?? '',
-      patientName: d['patientName'] as String? ?? '',
-      doctorName:  d['doctorName']  as String? ?? '',
-      date:        ts(d['date']),
-      time:        d['time']        as String? ?? '',
-      status:      d['status']      as String? ?? 'pending',
-      createdAt:   ts(d['createdAt']),
+      id:                 id,
+      patientId:          d['patientId']          as String? ?? '',
+      doctorId:           d['doctorId']            as String? ?? '',
+      patientName:        d['patientName']         as String? ?? '',
+      doctorName:         d['doctorName']          as String? ?? '',
+      date:               ts(d['date']),
+      time:               d['time']                as String? ?? '',
+      status:             d['status']              as String? ?? 'pending',
+      createdAt:          ts(d['createdAt']),
+      rescheduleDate:     d['rescheduleDate'] != null ? ts(d['rescheduleDate']) : null,
+      rescheduleTime:     d['rescheduleTime']      as String?,
+      rescheduleAccepted: d['rescheduleAccepted']  as bool? ?? false,
     );
   }
 
-  bool get isPending  => status == 'pending';
-  bool get isApproved => status == 'approved';
-  bool get isRejected => status == 'rejected';
+  bool get isPending          => status == 'pending';
+  bool get isApproved         => status == 'approved';
+  bool get isRejected         => status == 'rejected';
+  bool get isReschedulePending => status == 'reschedule_pending';
+  bool get isCancelledByDoctor => status == 'cancelled_by_doctor';
 
   /// True if the appointment date+time is in the past.
   bool get isPast {

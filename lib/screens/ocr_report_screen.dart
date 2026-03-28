@@ -420,7 +420,7 @@ class _OcrReportScreenState extends State<OcrReportScreen>
           ).animate().fadeIn(delay: 80.ms, duration: 300.ms).slideY(begin: 0.08, end: 0),
 
           const SizedBox(height: 32),
-          _TipBanner(
+          const _TipBanner(
             icon: Icons.lightbulb_outline,
             color: AppColors.accentAmber,
             message: 'Tip: Make sure the report is flat, well-lit and fully in frame for best results.',
@@ -640,7 +640,7 @@ class _OcrReportScreenState extends State<OcrReportScreen>
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today, color: AppColors.accent, size: 18),
+                    const Icon(Icons.calendar_today, color: AppColors.accent, size: 18),
                     const SizedBox(width: 10),
                     Text(
                       _formatDate(_reportDate),
@@ -994,7 +994,7 @@ class _ScannerPainter extends CustomPainter {
       final opacity = ((successFraction - 0.3) / 0.7).clamp(0.0, 1.0);
       final cx = size.width / 2;
       final cy = size.height / 2;
-      final radius = 36.0;
+      const radius = 36.0;
       canvas.drawCircle(
         Offset(cx, cy),
         radius,
@@ -1150,13 +1150,13 @@ class _SectionHeader extends StatelessWidget {
               color: AppColors.accent.withOpacity(0.12),
               borderRadius: BorderRadius.circular(99),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.auto_fix_high_rounded,
+                Icon(Icons.auto_fix_high_rounded,
                     color: AppColors.accent, size: 11),
-                const SizedBox(width: 4),
-                const Text('Auto-extracted',
+                SizedBox(width: 4),
+                Text('Auto-extracted',
                     style: TextStyle(
                         color: AppColors.accent,
                         fontSize: 10,

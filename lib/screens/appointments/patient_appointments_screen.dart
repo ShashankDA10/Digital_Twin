@@ -22,11 +22,7 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
   AppUser? _me;
   bool     _loadingUser = true;
 
-  /// Separate subscription used only for reminder management (not UI rendering).
   StreamSubscription<List<Appointment>>? _reminderSub;
-
-  /// Tracks IDs of appointments whose reminders have been cancelled so we
-  /// don't call cancel repeatedly on every stream emission.
   final Set<String> _cancelledReminderIds = {};
 
   @override
@@ -49,12 +45,12 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
     }
   }
 
-  /// Listens to the patient's appointments and cancels reminders whenever
-  /// an appointment is rejected or cancelled by the doctor.
   void _startReminderSync(String patientId) {
     _reminderSub = AppointmentService.patientStream(patientId).listen((appts) {
       for (final appt in appts) {
-        if ((appt.isRejected || appt.status == 'cancelled') &&
+        if ((appt.isRejected ||
+                appt.status == 'cancelled' ||
+                appt.isCancelledByDoctor) &&
             !_cancelledReminderIds.contains(appt.id)) {
           _cancelledReminderIds.add(appt.id);
           AppointmentReminderService.cancelReminders(appt.id);
@@ -63,32 +59,38 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
     });
   }
 
-  // ── Status helpers ─────────────────────────────────────────────────────────
+  // ── Status helpers ──────────────────────────────────────────────────────────
 
   static Color _statusColor(String status) {
     switch (status) {
-      case 'approved':   return const Color(0xFF10b981);
-      case 'rejected':   return const Color(0xFFf43f5e);
-      case 'cancelled':  return const Color(0xFF94a3b8);
-      default:           return const Color(0xFFf59e0b); // pending
+      case 'approved':            return const Color(0xFF10b981);
+      case 'rejected':            return const Color(0xFFf43f5e);
+      case 'cancelled':           return const Color(0xFF94a3b8);
+      case 'cancelled_by_doctor': return const Color(0xFFf43f5e);
+      case 'reschedule_pending':  return const Color(0xFF3b82f6);
+      default:                    return const Color(0xFFf59e0b);
     }
   }
 
   static IconData _statusIcon(String status) {
     switch (status) {
-      case 'approved':   return Icons.check_circle;
-      case 'rejected':   return Icons.cancel;
-      case 'cancelled':  return Icons.remove_circle;
-      default:           return Icons.hourglass_empty;
+      case 'approved':            return Icons.check_circle;
+      case 'rejected':            return Icons.cancel;
+      case 'cancelled':           return Icons.remove_circle;
+      case 'cancelled_by_doctor': return Icons.cancel;
+      case 'reschedule_pending':  return Icons.schedule;
+      default:                    return Icons.hourglass_empty;
     }
   }
 
   static String _statusLabel(String status) {
     switch (status) {
-      case 'approved':   return 'Approved';
-      case 'rejected':   return 'Rejected';
-      case 'cancelled':  return 'Cancelled';
-      default:           return 'Pending';
+      case 'approved':            return 'Approved';
+      case 'rejected':            return 'Rejected';
+      case 'cancelled':           return 'Cancelled';
+      case 'cancelled_by_doctor': return 'Cancelled by Doctor';
+      case 'reschedule_pending':  return 'Reschedule Proposed';
+      default:                    return 'Pending';
     }
   }
 
@@ -122,6 +124,96 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
       ),
     );
     if (confirmed == true) await AppointmentService.cancel(appt.id);
+  }
+
+  Future<void> _acceptReschedule(Appointment appt) async {
+    if (appt.rescheduleDate == null || appt.rescheduleTime == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surfaceElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Accept Reschedule',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        content: Text(
+          'Accept the new appointment time with Dr. ${appt.doctorName}?\n\n'
+          'New time: ${_formatDate(appt.rescheduleDate!)} at ${appt.rescheduleTime}',
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Back', style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Accept',
+                style: TextStyle(color: Color(0xFF10b981), fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      try {
+        await AppointmentService.acceptReschedule(
+            appt.id, appt.rescheduleDate!, appt.rescheduleTime!);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Appointment rescheduled successfully.'),
+            backgroundColor: Color(0xFF10b981),
+          ));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Failed: $e'), backgroundColor: AppColors.danger));
+        }
+      }
+    }
+  }
+
+  Future<void> _declineReschedule(Appointment appt) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surfaceElevated,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Decline Reschedule',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        content: Text(
+          'Decline the reschedule proposed by Dr. ${appt.doctorName}? The appointment will be cancelled.',
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Back', style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Decline',
+                style: TextStyle(color: Color(0xFFf43f5e), fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      try {
+        await AppointmentService.declineReschedule(appt.id);
+        await AppointmentReminderService.cancelReminders(appt.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Reschedule declined. Appointment cancelled.'),
+            backgroundColor: Color(0xFF94a3b8),
+          ));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Failed: $e'), backgroundColor: AppColors.danger));
+        }
+      }
+    }
   }
 
   @override
@@ -188,19 +280,54 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
                       );
                     }
 
-                    // Split into upcoming and past
-                    final upcoming = all.where((a) => !a.isPast && a.status != 'cancelled').toList();
-                    final past     = all.where((a) => a.isPast  || a.status == 'cancelled').toList();
+                    // Reschedule proposals get their own highlighted section
+                    final reschedule = all.where((a) => a.isReschedulePending).toList();
+                    final upcoming   = all.where((a) =>
+                        !a.isPast &&
+                        a.status != 'cancelled' &&
+                        !a.isCancelledByDoctor &&
+                        !a.isReschedulePending).toList();
+                    final past       = all.where((a) =>
+                        a.isPast ||
+                        a.status == 'cancelled' ||
+                        a.isCancelledByDoctor).toList();
 
                     return ListView(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       children: [
+                        // ── Reschedule proposals (action required) ──────────
+                        if (reschedule.isNotEmpty) ...[
+                          _SectionTitle('Action Required', reschedule.length,
+                              const Color(0xFF3b82f6)),
+                          const SizedBox(height: 10),
+                          ...reschedule.asMap().entries.map((e) =>
+                            _AppointmentCard(
+                              appt:        e.value,
+                              statusColor: _statusColor(e.value.status),
+                              statusIcon:  _statusIcon(e.value.status),
+                              statusLabel: _statusLabel(e.value.status),
+                              dateLabel:   _formatDate(e.value.date),
+                              showCancel:  false,
+                              onCancel:    () {},
+                              index:       e.key,
+                              onAcceptReschedule: () => _acceptReschedule(e.value),
+                              onDeclineReschedule: () => _declineReschedule(e.value),
+                              proposedDateLabel: e.value.rescheduleDate != null
+                                  ? _formatDate(e.value.rescheduleDate!)
+                                  : null,
+                              proposedTime: e.value.rescheduleTime,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                        // ── Upcoming ─────────────────────────────────────────
                         if (upcoming.isNotEmpty) ...[
-                          _SectionTitle('Upcoming', upcoming.length),
+                          _SectionTitle('Upcoming', upcoming.length,
+                              AppColors.accent),
                           const SizedBox(height: 10),
                           ...upcoming.asMap().entries.map((e) =>
                             _AppointmentCard(
-                              appt: e.value,
+                              appt:        e.value,
                               statusColor: _statusColor(e.value.status),
                               statusIcon:  _statusIcon(e.value.status),
                               statusLabel: _statusLabel(e.value.status),
@@ -212,12 +339,14 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
                           ),
                           const SizedBox(height: 20),
                         ],
+                        // ── Past ─────────────────────────────────────────────
                         if (past.isNotEmpty) ...[
-                          _SectionTitle('Past', past.length),
+                          _SectionTitle('Past', past.length,
+                              Colors.white.withValues(alpha: 0.4)),
                           const SizedBox(height: 10),
                           ...past.asMap().entries.map((e) =>
                             _AppointmentCard(
-                              appt: e.value,
+                              appt:        e.value,
                               statusColor: _statusColor(e.value.status),
                               statusIcon:  _statusIcon(e.value.status),
                               statusLabel: _statusLabel(e.value.status),
@@ -236,17 +365,22 @@ class _PatientAppointmentsScreenState extends State<PatientAppointmentsScreen> {
   }
 }
 
-// ── Appointment card ───────────────────────────────────────────────────────────
+// ── Appointment card ────────────────────────────────────────────────────────────
 
 class _AppointmentCard extends StatelessWidget {
-  final Appointment appt;
-  final Color       statusColor;
-  final IconData    statusIcon;
-  final String      statusLabel;
-  final String      dateLabel;
-  final bool        showCancel;
+  final Appointment  appt;
+  final Color        statusColor;
+  final IconData     statusIcon;
+  final String       statusLabel;
+  final String       dateLabel;
+  final bool         showCancel;
   final VoidCallback onCancel;
-  final int         index;
+  final int          index;
+  // Reschedule proposal
+  final VoidCallback? onAcceptReschedule;
+  final VoidCallback? onDeclineReschedule;
+  final String?       proposedDateLabel;
+  final String?       proposedTime;
 
   const _AppointmentCard({
     required this.appt,
@@ -257,10 +391,16 @@ class _AppointmentCard extends StatelessWidget {
     required this.showCancel,
     required this.onCancel,
     required this.index,
+    this.onAcceptReschedule,
+    this.onDeclineReschedule,
+    this.proposedDateLabel,
+    this.proposedTime,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isReschedule = appt.isReschedulePending;
+
     return AppCard(
       margin: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -316,6 +456,83 @@ class _AppointmentCard extends StatelessWidget {
             ),
           ]),
 
+          // ── Reschedule proposal banner ─────────────────────────────────────
+          if (isReschedule &&
+              proposedDateLabel != null &&
+              proposedTime != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3b82f6).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: const Color(0xFF3b82f6).withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(children: [
+                    Icon(Icons.schedule,
+                        size: 14, color: Color(0xFF3b82f6)),
+                    SizedBox(width: 6),
+                    Text('Doctor proposed a new time',
+                        style: TextStyle(
+                            color: Color(0xFF3b82f6),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
+                  ]),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    Icon(Icons.arrow_forward, size: 12,
+                        color: Colors.white.withValues(alpha: 0.5)),
+                    const SizedBox(width: 6),
+                    Text('$proposedDateLabel at $proposedTime',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                  ]),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onAcceptReschedule,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF10b981),
+                          side: const BorderSide(color: Color(0xFF10b981)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                        child: const Text('Accept',
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: onDeclineReschedule,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFf43f5e),
+                          side: const BorderSide(color: Color(0xFFf43f5e)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                        child: const Text('Decline',
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ]),
+                ],
+              ),
+            ),
+          ],
+
+          // ── Patient cancel (pending only) ──────────────────────────────────
           if (showCancel) ...[
             const SizedBox(height: 12),
             const Divider(color: Colors.white10, height: 1),
@@ -342,7 +559,8 @@ class _AppointmentCard extends StatelessWidget {
 class _SectionTitle extends StatelessWidget {
   final String title;
   final int    count;
-  const _SectionTitle(this.title, this.count);
+  final Color  color;
+  const _SectionTitle(this.title, this.count, this.color);
 
   @override
   Widget build(BuildContext context) => Row(children: [
@@ -353,12 +571,11 @@ class _SectionTitle extends StatelessWidget {
     Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.accent.withValues(alpha: 0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text('$count',
-          style: const TextStyle(
-              color: AppColors.accent, fontSize: 11, fontWeight: FontWeight.w700)),
+          style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
     ),
   ]);
 }

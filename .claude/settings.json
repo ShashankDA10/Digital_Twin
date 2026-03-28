@@ -3,7 +3,11 @@
     "allow": [
       "Bash(find /c/Users/raj36/HDT -type f -name *.ts -o -name *.js)",
       "Bash(find /c/Users/raj36/HDT -name README* -o -name *.md)",
-      "Bash(flutter pub:*)"
+      "Bash(flutter pub:*)",
+      "Bash(where flutter:*)",
+      "Bash(powershell -Command \"Get-Command flutter | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Users\\\\shash'' -Recurse -Filter ''flutter.bat'' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName\")",
+      "Bash(\"C:/Users/shash/desktop/flutter/bin/flutter.bat\" clean:*)"
     ]
   }
 }
