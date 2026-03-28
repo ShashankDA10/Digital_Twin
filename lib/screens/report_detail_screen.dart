@@ -85,7 +85,7 @@ class ReportDetailScreen extends StatelessWidget {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.18),
+                        color: color.withOpacity(0.18),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(icon, color: color, size: 26),
@@ -102,11 +102,11 @@ class ReportDetailScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text('$category › $type',
                               style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.55), fontSize: 12)),
+                                  color: Colors.white.withOpacity(0.55), fontSize: 12)),
                           const SizedBox(height: 4),
                           Text(_formatDate(data['date']),
                               style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.45), fontSize: 12)),
+                                  color: Colors.white.withOpacity(0.45), fontSize: 12)),
                         ],
                       ),
                     ),
@@ -120,16 +120,16 @@ class ReportDetailScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.accentBlue.withValues(alpha: 0.1),
+                    color: AppColors.accentBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.accentBlue.withValues(alpha: 0.3)),
+                    border: Border.all(color: AppColors.accentBlue.withOpacity(0.3)),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const Icon(Icons.document_scanner_rounded,
+                      Icon(Icons.document_scanner_rounded,
                           color: AppColors.accentBlue, size: 16),
-                      const SizedBox(width: 10),
-                      const Expanded(
+                      SizedBox(width: 10),
+                      Expanded(
                         child: Text(
                           'Self-uploaded — scanned and added by you',
                           style: TextStyle(
@@ -153,9 +153,9 @@ class ReportDetailScreen extends StatelessWidget {
                   children: tags.map((t) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
+                      color: color.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: color.withValues(alpha: 0.35)),
+                      border: Border.all(color: color.withOpacity(0.35)),
                     ),
                     child: Text(t, style: TextStyle(
                         color: color, fontSize: 12, fontWeight: FontWeight.w600)),
@@ -249,7 +249,7 @@ class ReportDetailScreen extends StatelessWidget {
                       Container(
                         width: 38, height: 38,
                         decoration: BoxDecoration(
-                          color: AppColors.accent.withValues(alpha: 0.15),
+                          color: AppColors.accent.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(Icons.medication, color: AppColors.accent, size: 20),
@@ -265,7 +265,7 @@ class ReportDetailScreen extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text('Saved to your Medication tab',
                                 style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+                                    color: Colors.white.withOpacity(0.5), fontSize: 12)),
                           ],
                         ),
                       ),
@@ -319,7 +319,7 @@ class _Section extends StatelessWidget {
             const SizedBox(height: 8),
             Text(value.toString(),
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withOpacity(0.85),
                     fontSize: 14, height: 1.5)),
           ],
         ),

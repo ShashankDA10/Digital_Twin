@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../../models/app_user.dart';
 import '../../services/medication_service.dart';
 import '../../services/report_service.dart';
@@ -855,6 +857,33 @@ class _ReportDetailSheet extends StatelessWidget {
               )).toList(),
             ),
           ],
+
+          // ── Attachments ────────────────────────────────────────────────────
+          if ((report['attachments'] as List?)?.isNotEmpty == true) ...[
+            const SizedBox(height: 16),
+            Row(children: [
+              const Icon(Icons.attach_file,
+                  color: AppColors.accentBlue, size: 15),
+              const SizedBox(width: 6),
+              Text('Attachments',
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.45),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600)),
+            ]),
+            const SizedBox(height: 10),
+            ...(report['attachments'] as List).map((a) {
+              final att  = a as Map;
+              final name = att['name']?.toString() ?? 'File';
+              final url  = att['url']?.toString() ?? '';
+              final ext  = name.split('.').last.toLowerCase();
+              final isImage = ['jpg', 'jpeg', 'png'].contains(ext);
+              if (isImage) {
+                return _ImageAttachmentTile(name: name, url: url);
+              }
+              return _FileAttachmentTile(name: name, url: url, ext: ext);
+            }),
+          ],
         ],
       ),
     );
@@ -882,6 +911,266 @@ class _DetailRow extends StatelessWidget {
             style: const TextStyle(color: Colors.white, fontSize: 14)),
         const Divider(color: Colors.white10, height: 16),
       ]),
+    );
+  }
+}
+
+// ── Image attachment tile ─────────────────────────────────────────────────────
+
+class _ImageAttachmentTile extends StatelessWidget {
+  final String name;
+  final String url;
+  const _ImageAttachmentTile({required this.name, required this.url});
+
+  void _openFullScreen(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  url,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (_, child, progress) => progress == null
+                      ? child
+                      : const Center(
+                          child: CircularProgressIndicator(
+                              color: AppColors.accentBlue)),
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.broken_image,
+                        color: Colors.white38, size: 64),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 16,
+              child: IconButton(
+                style: IconButton.styleFrom(
+                    backgroundColor: Colors.black54),
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _openFullScreen(context),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Thumbnail
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+              child: SizedBox(
+                height: 180,
+                width: double.infinity,
+                child: Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (_, child, progress) => progress == null
+                      ? child
+                      : Container(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                                color: AppColors.accentBlue, strokeWidth: 2),
+                          ),
+                        ),
+                  errorBuilder: (_, __, ___) => Container(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    child: const Center(
+                      child: Icon(Icons.broken_image,
+                          color: Colors.white24, size: 40),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // File name + tap hint
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(children: [
+                const Icon(Icons.image_outlined,
+                    size: 14, color: AppColors.accentBlue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 12)),
+                ),
+                Text('Tap to expand',
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.35),
+                        fontSize: 11)),
+                const SizedBox(width: 4),
+                Icon(Icons.open_in_full,
+                    size: 13,
+                    color: Colors.white.withValues(alpha: 0.35)),
+              ]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Non-image attachment tile (PDF / DOC / etc.) ──────────────────────────────
+
+class _FileAttachmentTile extends StatelessWidget {
+  final String name;
+  final String url;
+  final String ext;
+  const _FileAttachmentTile(
+      {required this.name, required this.url, required this.ext});
+
+  IconData get _icon {
+    if (ext == 'pdf') return Icons.picture_as_pdf;
+    if (ext == 'doc' || ext == 'docx') return Icons.description;
+    return Icons.insert_drive_file;
+  }
+
+  void _open(BuildContext context) {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('File viewing is not supported on web. '
+              'Download the file to view it.'),
+          backgroundColor: Color(0xFF3b82f6),
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _FileViewerScreen(name: name, url: url),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(children: [
+        Icon(_icon, color: AppColors.accentBlue, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 13)),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => _open(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.accentBlue.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                  color: AppColors.accentBlue.withValues(alpha: 0.35)),
+            ),
+            child: const Text('View',
+                style: TextStyle(
+                    color: AppColors.accentBlue,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700)),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+// ── In-app file viewer (mobile only) ─────────────────────────────────────────
+
+class _FileViewerScreen extends StatefulWidget {
+  final String name;
+  final String url;
+  const _FileViewerScreen({required this.name, required this.url});
+
+  @override
+  State<_FileViewerScreen> createState() => _FileViewerScreenState();
+}
+
+class _FileViewerScreenState extends State<_FileViewerScreen> {
+  late final WebViewController _controller;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use Google Docs viewer for PDFs/docs; direct URL for others
+    final ext = widget.name.split('.').last.toLowerCase();
+    final viewUrl = (ext == 'pdf' || ext == 'doc' || ext == 'docx')
+        ? 'https://docs.google.com/viewer?url=${Uri.encodeComponent(widget.url)}'
+        : widget.url;
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageFinished: (_) {
+          if (mounted) setState(() => _loading = false);
+        },
+      ))
+      ..loadRequest(Uri.parse(viewUrl));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(widget.name,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+            overflow: TextOverflow.ellipsis),
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_loading)
+            const Center(
+              child: CircularProgressIndicator(color: AppColors.accentBlue),
+            ),
+        ],
+      ),
     );
   }
 }
